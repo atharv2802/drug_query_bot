@@ -20,7 +20,10 @@ llm_message_content = '''{
 intent = json.loads(llm_message_content)
 
 # Step 2: Query Supabase database
-DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql://postgres:lYxk9bu6wCk9vLCF@db.tdgkmoqqbjsnojvpundd.supabase.co:5432/postgres"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    print("ERROR: DATABASE_URL not found. Set it as environment variable.")
+    sys.exit(1)
 conn = psycopg2.connect(DATABASE_URL)
 
 query = """

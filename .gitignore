@@ -23,6 +23,9 @@ wheels/
 .installed.cfg
 *.egg
 
+# Virtual Environment
+drug_query_bot/
+
 # Streamlit
 .streamlit/secrets.toml
 
@@ -40,14 +43,26 @@ Thumbs.db
 # Environment
 .env
 .env.local
-drug_query_bot
-
 
 # Logs
 *.log
+llm_response_debug.log
 
 # Database
 *.db
+*.sqlite
+*.sqlite3
+
+# Test outputs
+.coverage
+htmlcov/
+.pytest_cache/
+test-results/
+
+# Temporary files
+*.tmp
+*.bak
+.DS_Store
 *.sqlite
 *.sqlite3
 

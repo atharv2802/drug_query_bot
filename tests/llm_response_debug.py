@@ -4,6 +4,8 @@ Test and debug LLM response for a specific query, with raw response logging.
 import requests
 import json
 import logging
+import os
+import sys
 from config.prompts import INTENT_EXTRACTION_PROMPT
 
 # Set up logging to file and console
@@ -16,7 +18,10 @@ logging.basicConfig(
     ]
 )
 
-API_KEY = "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"  # Replace with your actual key
+API_KEY = os.getenv("OPENROUTER_API_KEY")
+if not API_KEY:
+    print("ERROR: OPENROUTER_API_KEY not found in environment. Set it before running.")
+    sys.exit(1)
 MODEL = "meta-llama/llama-3-70b-instruct"
 QUERY = "Suggest generic preferred drugs for Antiemetics category"
 PROMPT = INTENT_EXTRACTION_PROMPT.format(query=QUERY)
