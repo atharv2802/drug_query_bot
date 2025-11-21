@@ -6,16 +6,22 @@ Creates a unified drugs table that merges:
 2. Prior Authorization/Medical Necessity Determination List (PA/MND requirements)
 
 Run this before data ingestion.
+
+NOTE: This script still uses psycopg2 for schema creation as Supabase client 
+doesn't support CREATE TABLE operations. For regular queries, use utils/db.py 
+which uses the Supabase client.
 """
 import psycopg2
 import sys
 import os
-import configparser
 
 
 def create_schema(database_url: str):
     """
     Create the drugs table and indexes.
+    
+    Note: This requires a direct Postgres connection string.
+    For cloud deployments, run this locally or use Supabase SQL Editor.
     """
     conn = psycopg2.connect(database_url)
     

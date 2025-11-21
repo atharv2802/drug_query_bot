@@ -1,28 +1,35 @@
 """
 Database access layer for drug queries.
-Handles all Supabase Postgres interactions.
+Handles all Supabase interactions using the Supabase Python client.
 """
 
-import psycopg2
-from psycopg2.extras import RealDictCursor
+from supabase import create_client, Client
 from typing import Optional, List, Dict, Any
 import streamlit as st
+import os
 from utils.fuzzy import fuzzy_match_drug_name
 
 
-def get_db_connection():
+def get_supabase_client() -> Client:
     """
-    Establish connection to Supabase Postgres database.
-    Uses DATABASE_URL from Streamlit secrets.
+    Get Supabase client instance.
+    Uses SUPABASE_URL and SUPABASE_KEY from Streamlit secrets or environment variables.
     """
     try:
-        conn = psycopg2.connect(
-            st.secrets["DATABASE_URL"],
-            cursor_factory=RealDictCursor
-        )
-        return conn
+        # Try Streamlit secrets first
+        if hasattr(st, 'secrets') and 'SUPABASE_URL' in st.secrets:
+            url = st.secrets["SUPABASE_URL"]
+            key = st.secrets["SUPABASE_KEY"]
+        # Fallback to environment variables
+        else:
+            url = os.getenv("SUPABASE_URL")
+            key = os.getenv("SUPABASE_KEY")
+            if not url or not key:
+                raise ValueError("SUPABASE_URL and SUPABASE_KEY must be set in secrets or environment")
+        
+        return create_client(url, key)
     except Exception as e:
-        st.error(f"Database connection failed: {str(e)}")
+        st.error(f"Supabase client initialization failed: {str(e)}")
         raise
 
 
@@ -30,14 +37,13 @@ def fetch_all_drug_names() -> List[str]:
     """
     Fetch all drug names from the database for fuzzy matching.
     """
-    conn = get_db_connection()
+    supabase = get_supabase_client()
     try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT drug_name FROM drugs")
-            rows = cur.fetchall()
-            return [row['drug_name'] for row in rows]
-    finally:
-        conn.close()
+        response = supabase.table("drugs").select("drug_name").execute()
+        return [row['drug_name'] for row in response.data]
+    except Exception as e:
+        st.error(f"Failed to fetch drug names: {str(e)}")
+        raise
 
 
 def fetch_drug_by_name(name: str) -> Optional[Dict[str, Any]]:
@@ -50,39 +56,31 @@ def fetch_drug_by_name(name: str) -> Optional[Dict[str, Any]]:
     Returns:
         Dictionary with drug information or None if not found
     """
-    conn = get_db_connection()
+    supabase = get_supabase_client()
     try:
-        with conn.cursor() as cur:
-            # Try exact match first (case-insensitive)
-            cur.execute(
-                "SELECT * FROM drugs WHERE LOWER(drug_name) = LOWER(%s)",
-                (name,)
-            )
-            result = cur.fetchone()
-            
-            if result:
-                return dict(result)
-            
-            # Try fuzzy match
-            all_drug_names = fetch_all_drug_names()
-            matched_name, confidence = fuzzy_match_drug_name(name, all_drug_names)
-            
-            if matched_name and confidence >= 70:
-                cur.execute(
-                    "SELECT * FROM drugs WHERE LOWER(drug_name) = LOWER(%s)",
-                    (matched_name,)
-                )
-                result = cur.fetchone()
-                if result:
-                    result_dict = dict(result)
-                    result_dict['_fuzzy_match'] = True
-                    result_dict['_fuzzy_confidence'] = confidence
-                    result_dict['_original_query'] = name
-                    return result_dict
-            
-            return None
-    finally:
-        conn.close()
+        # Try exact match first (case-insensitive using ilike)
+        response = supabase.table("drugs").select("*").ilike("drug_name", name).execute()
+        
+        if response.data and len(response.data) > 0:
+            return response.data[0]
+        
+        # Try fuzzy match
+        all_drug_names = fetch_all_drug_names()
+        matched_name, confidence = fuzzy_match_drug_name(name, all_drug_names)
+        
+        if matched_name and confidence >= 70:
+            response = supabase.table("drugs").select("*").ilike("drug_name", matched_name).execute()
+            if response.data and len(response.data) > 0:
+                result_dict = response.data[0].copy()
+                result_dict['_fuzzy_match'] = True
+                result_dict['_fuzzy_confidence'] = confidence
+                result_dict['_original_query'] = name
+                return result_dict
+        
+        return None
+    except Exception as e:
+        st.error(f"Failed to fetch drug by name: {str(e)}")
+        raise
 
 
 def fetch_alternatives(drug_name: str) -> List[Dict[str, Any]]:
@@ -100,7 +98,7 @@ def fetch_alternatives(drug_name: str) -> List[Dict[str, Any]]:
     Returns:
         List of preferred alternative drugs
     """
-    conn = get_db_connection()
+    supabase = get_supabase_client()
     try:
         # First, get the drug's category
         drug_info = fetch_drug_by_name(drug_name)
@@ -111,21 +109,19 @@ def fetch_alternatives(drug_name: str) -> List[Dict[str, Any]]:
         category = drug_info['category']
         actual_drug_name = drug_info['drug_name']
         
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT * FROM drugs 
-                WHERE category = %s 
-                AND drug_status = 'preferred'
-                AND LOWER(drug_name) != LOWER(%s)
-                ORDER BY drug_name
-                """,
-                (category, actual_drug_name)
-            )
-            results = cur.fetchall()
-            return [dict(row) for row in results]
-    finally:
-        conn.close()
+        # Fetch alternatives in same category, preferred status, excluding the original drug
+        response = (supabase.table("drugs")
+                   .select("*")
+                   .eq("category", category)
+                   .eq("drug_status", "preferred")
+                   .neq("drug_name", actual_drug_name)
+                   .order("drug_name")
+                   .execute())
+        
+        return response.data
+    except Exception as e:
+        st.error(f"Failed to fetch alternatives: {str(e)}")
+        raise
 
 
 def filter_drugs(filters: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -145,66 +141,56 @@ def filter_drugs(filters: Dict[str, Any]) -> List[Dict[str, Any]]:
     Returns:
         List of drugs matching all criteria
     """
-    conn = get_db_connection()
+    supabase = get_supabase_client()
     try:
-        conditions = []
-        params = []
+        query = supabase.table("drugs").select("*")
         
         if filters.get('drug_status'):
             # Normalize to match DB values
             status = filters['drug_status'].lower().replace('-', '_')
             if status in ['preferred', 'non_preferred', 'not_listed']:
-                conditions.append("drug_status = %s")
-                params.append(status)
+                query = query.eq("drug_status", status)
+        
         if filters.get('pa_mnd_required'):
             # Normalize to match DB values
             pa_mnd = filters['pa_mnd_required'].lower() if isinstance(filters['pa_mnd_required'], str) else filters['pa_mnd_required']
             if pa_mnd in ['yes', 'no', 'unknown']:
-                conditions.append("pa_mnd_required = %s")
-                params.append(pa_mnd)
+                query = query.eq("pa_mnd_required", pa_mnd)
         
         if filters.get('category'):
-            conditions.append("LOWER(category) LIKE LOWER(%s)")
-            params.append(f"%{filters['category']}%")
+            # Use exact match for category (case-insensitive)
+            query = query.eq("category", filters['category'])
         
         if filters.get('hcpcs'):
-            conditions.append("LOWER(hcpcs) = LOWER(%s)")
-            params.append(filters['hcpcs'])
+            query = query.eq("hcpcs", filters['hcpcs'])
         
         if filters.get('manufacturer'):
-            manufacturer = filters['manufacturer'].lower()
-            # Handle special case: "generic" keyword should match manufacturer='Generic'
-            if 'generic' in manufacturer:
-                conditions.append("LOWER(manufacturer) = 'generic'")
-            else:
-                conditions.append("LOWER(manufacturer) LIKE LOWER(%s)")
-                params.append(f"%{filters['manufacturer']}%")
+            manufacturer = filters['manufacturer']
+            # Use exact match for manufacturer (case-insensitive)
+            query = query.eq("manufacturer", manufacturer)
         
-        # Build query
-        query = "SELECT * FROM drugs"
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-        query += " ORDER BY drug_name"
-        
-        with conn.cursor() as cur:
-            cur.execute(query, params)
-            results = cur.fetchall()
-            return [dict(row) for row in results]
-    finally:
-        conn.close()
+        response = query.order("drug_name").execute()
+        return response.data
+    except Exception as e:
+        if hasattr(st, 'error'):
+            st.error(f"Failed to filter drugs: {str(e)}")
+        raise
 
 
 def get_all_categories() -> List[str]:
     """
     Get all unique categories from the database.
     """
-    conn = get_db_connection()
+    supabase = get_supabase_client()
     try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT DISTINCT category FROM drugs WHERE category IS NOT NULL ORDER BY category"
-            )
-            rows = cur.fetchall()
-            return [row['category'] for row in rows]
-    finally:
-        conn.close()
+        response = (supabase.table("drugs")
+                   .select("category")
+                   .not_.is_("category", "null")
+                   .execute())
+        
+        # Extract unique categories and sort
+        categories = list(set(row['category'] for row in response.data if row.get('category')))
+        return sorted(categories)
+    except Exception as e:
+        st.error(f"Failed to fetch categories: {str(e)}")
+        raise

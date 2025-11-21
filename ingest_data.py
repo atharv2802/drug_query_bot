@@ -8,6 +8,10 @@ Merges two data sources:
 Logic:
 - Drugs in pa_mnd_list.csv are marked with pa_mnd_required = 'yes'
 - Drugs NOT in pa_mnd_list.csv are marked with pa_mnd_required = 'no'
+
+NOTE: This script uses psycopg2 for bulk inserts which is more efficient than Supabase client.
+Run this locally with a DATABASE_URL connection string. For regular queries in the app,
+use utils/db.py which uses the Supabase client (works on Streamlit Cloud).
 """
 import csv
 import psycopg2
