@@ -48,6 +48,7 @@ def detect_query_type(query: str) -> Tuple[str, float]:
         r'\b(list|show all|give all|display all|filter)\b',
         r'\b(all .+ drugs?|all .+ medications?)\b',
         r'\b(what are .+ drugs?)\b',
+        r'\b(non.?preferred .+ (with|that have|having) .+ preferred)\b',
     ]
     
     for pattern in list_patterns:
@@ -79,7 +80,7 @@ def extract_filters(query: str) -> Dict[str, Any]:
     
     Returns:
         Dictionary with possible keys:
-        - drug_status: 'preferred' | 'non_preferred'
+        - drug_status: 'preferred' | 'non_preferred' | None (None means all statuses)
         - pa_required: 'yes' | 'no'
         - mnd_required: 'yes' | 'no'
         - category: category name
@@ -87,9 +88,26 @@ def extract_filters(query: str) -> Dict[str, Any]:
     query_lower = query.lower()
     filters = {}
     
-    # Drug status
-    if re.search(r'\b(preferred)\b', query_lower) and not re.search(r'\b(non.?preferred)\b', query_lower):
+    # Drug status - detect "both", "all", or specific status
+    # Check for edge case: non-preferred drugs with preferred alternatives
+    if re.search(r'\b(non.?preferred|not preferred)\b.*\b(with|that have|having)\b.*\b(preferred)\b', query_lower):
+        filters['drug_status'] = 'non_preferred'
+        filters['has_preferred_alternative'] = True
+    # Check for "both" or "all" keywords which mean no filter
+    elif re.search(r'\b(both|all)\b.*\b(preferred|non.?preferred)', query_lower):
+        # User wants both preferred and non-preferred - don't set filter
+        pass
+    # Check for explicit "only preferred" or "just preferred"
+    elif re.search(r'\b(only|just|exclusively)\s+(preferred)\b', query_lower) and not re.search(r'\b(non.?preferred)\b', query_lower):
         filters['drug_status'] = 'preferred'
+    # Check for "preferred" but NOT in context of "non-preferred"
+    # Also exclude if it's part of "alternatives" query without status specification
+    elif re.search(r'\b(preferred)\b', query_lower) and not re.search(r'\b(non.?preferred)\b', query_lower):
+        # Only set filter if "preferred" is used as a status indicator, not just in "alternatives"
+        # Check if query is asking for alternatives without specifying status
+        if not re.search(r'\b(alternative|alternatives|instead|other options?|replace|replacement)\b.*\bto\b', query_lower) or \
+           re.search(r'\b(preferred\s+(alternative|drug|medication|option))', query_lower):
+            filters['drug_status'] = 'preferred'
     elif re.search(r'\b(non.?preferred|not preferred)\b', query_lower):
         filters['drug_status'] = 'non_preferred'
     
@@ -140,6 +158,10 @@ def validate_filters(filters: Dict[str, Any]) -> Dict[str, Any]:
     # Manufacturer
     if 'manufacturer' in filters:
         valid_filters['manufacturer'] = filters['manufacturer']
+    
+    # has_preferred_alternative (special filter for edge case)
+    if 'has_preferred_alternative' in filters:
+        valid_filters['has_preferred_alternative'] = filters['has_preferred_alternative']
     
     return valid_filters
 

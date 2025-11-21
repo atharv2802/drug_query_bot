@@ -35,11 +35,12 @@ def load_preferred_drugs_list(csv_path: str) -> List[Dict[str, Any]]:
     Load the Preferred Medical Drugs List from CSV.
     
     This list contains drug categorization and preference information.
+    Each row represents one drug-category combination.
     
     Expected columns:
-    - Category (e.g., Oncology, Immunology, Rheumatology)
-    - Drug Status (Preferred, Non-Preferred)
     - Drug Name
+    - Category (single category per row)
+    - Drug Status (Preferred, Non-Preferred)
     - HCPCS (billing code)
     - Manufacturer
     """
@@ -53,9 +54,15 @@ def load_preferred_drugs_list(csv_path: str) -> List[Dict[str, Any]]:
                 drug_status = status_raw
             else:
                 drug_status = 'not_listed'
+            
+            # Each row has a single category
+            category = row.get('Category', '').strip()
+            if not category:
+                continue  # Skip rows without category
+            
             drug = {
                 'drug_name': row.get('Drug Name', '').strip(),
-                'category': row.get('Category', '').strip() or None,
+                'category': category,  # Single category per row
                 'drug_status': drug_status,
                 'hcpcs': row.get('HCPCS', '').strip() or None,
                 'manufacturer': row.get('Manufacturer', '').strip() or None,
@@ -98,43 +105,57 @@ def merge_drug_data(
     pa_mnd_data: Dict[str, str]
 ) -> List[Dict[str, Any]]:
     """
-    Merge preferred drugs list with PA/MND data as described:
-    1. Load preferred_drugs_list, set pa_mnd_required to 'no'.
+    Merge preferred drugs list with PA/MND data.
+    
+    Note: preferred_drugs is now a list of drug-category combinations (one row per category).
+    Each unique drug-category pair is a separate record.
+    
+    Logic:
+    1. Load preferred_drugs_list (one row per drug-category), set pa_mnd_required to 'no'.
     2. For each drug in pa_mnd_list:
-       - If present in preferred_drugs, update pa_mnd_required to 'yes'.
+       - If present in preferred_drugs (any category), update pa_mnd_required to 'yes' for all its categories.
        - If not present, add with only drug_name, pa_mnd_required='yes', notes, others empty.
     """
-    # Step 1: Add all preferred drugs, pa_mnd_required = 'no'
+    # Step 1: Add all preferred drugs with their categories
+    # Key: (normalized_name, category), Value: drug record
     drugs_map = {}
     for drug in preferred_drugs:
         normalized_name = normalize_drug_name(drug['drug_name'])
-        # Ensure pa_mnd_required is 'no' (even if CSV was wrong)
+        category = drug['category']
+        key = (normalized_name, category)
         drug['pa_mnd_required'] = 'no'
-        drugs_map[normalized_name] = drug
+        drugs_map[key] = drug
 
-    # Step 2: Update/add drugs from pa_mnd_list
+    # Step 2: Update PA/MND status for drugs across all their categories
     for drug_name, pa_mnd_status in pa_mnd_data.items():
         normalized_name = normalize_drug_name(drug_name)
-        if normalized_name in drugs_map:
-            # Update flag only
-            drugs_map[normalized_name]['pa_mnd_required'] = 'yes'
-        else:
-            # Add new drug with only name, flag, and notes
-            drugs_map[normalized_name] = {
+        
+        # Find all entries for this drug (across all categories)
+        found = False
+        for (name, category), drug in drugs_map.items():
+            if name == normalized_name:
+                drug['pa_mnd_required'] = 'yes'
+                found = True
+        
+        # If drug not found in any category, add it without category info
+        if not found:
+            drugs_map[(normalized_name, 'Unknown')] = {
                 'drug_name': drug_name,
-                'category': None,
+                'category': 'Unknown',  # Single unknown category
                 'drug_status': None,
                 'hcpcs': None,
                 'manufacturer': None,
                 'pa_mnd_required': 'yes',
                 'notes': 'Only found in PA/MND list'
             }
+    
     return list(drugs_map.values())
 
 
 def insert_drugs_to_db(drugs: List[Dict[str, Any]], database_url: str):
     """
     Insert merged drug data into Supabase Postgres.
+    Uses composite primary key (drug_name, category).
     """
     conn = psycopg2.connect(database_url)
     
@@ -143,11 +164,11 @@ def insert_drugs_to_db(drugs: List[Dict[str, Any]], database_url: str):
             # Clear existing data (optional - comment out to append instead)
             cur.execute("TRUNCATE TABLE drugs")
             
-            # Prepare data for insertion
+            # Prepare data for insertion - one row per drug-category
             drug_tuples = [
                 (
                     drug['drug_name'],
-                    drug['category'],
+                    drug['category'],  # Single category per row
                     drug['drug_status'],
                     drug['hcpcs'],
                     drug['manufacturer'],
@@ -157,7 +178,7 @@ def insert_drugs_to_db(drugs: List[Dict[str, Any]], database_url: str):
                 for drug in drugs
             ]
             
-            # Batch insert
+            # Batch insert with composite key conflict handling
             execute_values(
                 cur,
                 """
@@ -165,8 +186,7 @@ def insert_drugs_to_db(drugs: List[Dict[str, Any]], database_url: str):
                 (drug_name, category, drug_status, hcpcs, manufacturer, 
                  pa_mnd_required, notes)
                 VALUES %s
-                ON CONFLICT (drug_name) DO UPDATE SET
-                    category = EXCLUDED.category,
+                ON CONFLICT (drug_name, category) DO UPDATE SET
                     drug_status = EXCLUDED.drug_status,
                     hcpcs = EXCLUDED.hcpcs,
                     manufacturer = EXCLUDED.manufacturer,
@@ -205,10 +225,16 @@ def main():
 
     # Try to get DATABASE_URL from CLI, env, or Streamlit secrets
     DATABASE_URL = args.db_url or os.environ.get("DATABASE_URL")
-    if not DATABASE_URL and st is not None:
-        DATABASE_URL = st.secrets.get("DATABASE_URL")
+    
     if not DATABASE_URL:
-        print("Error: DATABASE_URL must be provided via --db_url, environment variable, or Streamlit secrets.")
+        if st is not None:
+            DATABASE_URL = st.secrets.get("DATABASE_URL")
+    
+    if not DATABASE_URL:
+        print("Error: DATABASE_URL must be provided via:")
+        print("  - Command line: --db_url")
+        print("  - Environment variable: DATABASE_URL")
+        print("  - Streamlit secrets: .streamlit/secrets.toml")
         return
 
     print(f"Loading Preferred Medical Drugs List from {PREFERRED_DRUGS_CSV}...")

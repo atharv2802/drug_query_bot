@@ -74,9 +74,11 @@ def parse_preferred_drugs(html):
         1: Drug Name
         2: HCPCS
         3: Manufacturer
+    
+    Returns list of drugs with categories as pipe-separated strings (to be split into arrays later)
     """
     soup = BeautifulSoup(html, 'html.parser')
-    drugs = []
+    drugs_dict = {}  # drug_name -> drug_info (with categories accumulated)
 
     # Find all h2s that likely represent categories
     for heading in soup.find_all('h2'):
@@ -113,15 +115,20 @@ def parse_preferred_drugs(html):
             if not drug_name:
                 continue
 
-            drugs.append({
-                'Category': category,
-                'Drug Status': drug_status,
-                'Drug Name': drug_name,
-                'HCPCS': hcpcs,
-                'Manufacturer': manufacturer,
-            })
+            # Create a unique key for drug-category combination
+            drug_category_key = (drug_name, category)
+            
+            # Store each drug-category combination separately
+            if drug_category_key not in drugs_dict:
+                drugs_dict[drug_category_key] = {
+                    'Drug Name': drug_name,
+                    'Category': category,  # Single category per row
+                    'Drug Status': drug_status,
+                    'HCPCS': hcpcs,
+                    'Manufacturer': manufacturer,
+                }
 
-    return drugs
+    return list(drugs_dict.values())
 
 
 def parse_pa_mnd_list(html):
@@ -176,9 +183,9 @@ def main():
     save_csv(
         preferred_drugs,
         'data/preferred_drugs_list.csv',
-        ['Category', 'Drug Status', 'Drug Name', 'HCPCS', 'Manufacturer']
+        ['Drug Name', 'Category', 'Drug Status', 'HCPCS', 'Manufacturer']
     )
-    print(f'Saved {len(preferred_drugs)} preferred drugs.')
+    print(f'Saved {len(preferred_drugs)} drug-category combinations.')
 
     print('Fetching PA/MND list...')
     pa_mnd_html = fetch_html(pa_mnd_url)

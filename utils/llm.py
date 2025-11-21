@@ -77,6 +77,7 @@ def call_openrouter(
 def extract_intent_with_llm(query: str, all_drug_names: list) -> Optional[Dict[str, Any]]:
     """
     Use LLM to extract intent from ambiguous query.
+    Uses smaller, faster model (8B) for intent extraction to optimize costs and latency.
     
     Args:
         query: User's query
@@ -87,7 +88,13 @@ def extract_intent_with_llm(query: str, all_drug_names: list) -> Optional[Dict[s
     """
     prompt = INTENT_EXTRACTION_PROMPT.format(query=query)
     
-    response = call_openrouter(prompt, temperature=0.0, max_tokens=500)
+    # Use smaller model for intent extraction (faster and cheaper)
+    response = call_openrouter(
+        prompt, 
+        model="meta-llama/llama-3.1-8b-instruct",  # Smaller model
+        temperature=0.0, 
+        max_tokens=500
+    )
     if not response:
         return None
     try:
@@ -146,17 +153,41 @@ def generate_answer_with_llm(
     context: Optional[Dict[str, Any]] = None
 ) -> str:
     """
-    Generate a natural language answer using LLM.
+    Generate a natural language answer using LLM with full context.
     
     Args:
         query: User's original query
         query_type: Type of query (drug_status, alternatives, list_filter)
         results: Database query results
-        context: Optional additional context
+        context: Optional additional context (intent, filters, confidence)
         
     Returns:
         Generated answer text
     """
+    # Format intent and filters information
+    intent_info = "Not available"
+    if context:
+        intent_parts = []
+        if context.get('drug_name'):
+            intent_parts.append(f"Drug Name: {context['drug_name']}")
+        if context.get('filters'):
+            filters = context['filters']
+            if filters.get('drug_status'):
+                intent_parts.append(f"Status Filter: {filters['drug_status']}")
+            if filters.get('category'):
+                intent_parts.append(f"Category Filter: {filters['category']}")
+            if filters.get('pa_mnd_required'):
+                intent_parts.append(f"PA/MND Filter: {filters['pa_mnd_required']}")
+            if filters.get('manufacturer'):
+                intent_parts.append(f"Manufacturer Filter: {filters['manufacturer']}")
+            if filters.get('has_preferred_alternative'):
+                intent_parts.append("Special Filter: Non-preferred drugs with preferred alternatives")
+        if context.get('confidence'):
+            intent_parts.append(f"Confidence: {context['confidence']}%")
+        
+        if intent_parts:
+            intent_info = "\n".join(intent_parts)
+    
     # Format results as readable text
     if not results:
         results_text = "No results found in the database."
@@ -176,8 +207,26 @@ def generate_answer_with_llm(
         for i, row in enumerate(results, 1):
             results_text += f"Drug {i}:\n"
             results_text += f"  Name: {row.get('drug_name', 'N/A')}\n"
-            results_text += f"  Category: {row.get('category', 'N/A')}\n"
-            results_text += f"  Status: {row.get('drug_status', 'N/A')}\n"
+            
+            # Format categories with per-category status if available
+            categories = row.get('categories', [])
+            statuses_by_category = row.get('statuses_by_category', {})
+            
+            if isinstance(categories, list) and categories:
+                if statuses_by_category:
+                    # Show status for each category
+                    category_info = []
+                    for cat in categories:
+                        status = statuses_by_category.get(cat, 'unknown')
+                        category_info.append(f"{cat} ({status})")
+                    results_text += f"  Categories: {', '.join(category_info)}\n"
+                else:
+                    # Fallback to just category names
+                    results_text += f"  Categories: {', '.join(categories)}\n"
+            else:
+                results_text += f"  Categories: N/A\n"
+            
+            results_text += f"  Overall Status: {row.get('drug_status', 'N/A')}\n"
             results_text += f"  PA/MND Required: {row.get('pa_mnd_required', 'unknown')}\n"
             results_text += f"  HCPCS: {row.get('hcpcs', 'N/A')}\n"
             results_text += f"  Manufacturer: {row.get('manufacturer', 'N/A')}\n"
@@ -188,10 +237,17 @@ def generate_answer_with_llm(
     prompt = ANSWER_GENERATION_PROMPT.format(
         query=query,
         query_type=query_type,
+        intent_info=intent_info,
         results=results_text
     )
     
-    response = call_openrouter(prompt, temperature=0.2, max_tokens=800)
+    # Use larger model for answer generation (better quality)
+    response = call_openrouter(
+        prompt, 
+        model="meta-llama/llama-3-70b-instruct",  # Larger model for better answers
+        temperature=0.2, 
+        max_tokens=800
+    )
     
     if response:
         return response

@@ -1,38 +1,55 @@
-# 🛠️ Setup Guide - Drug Query Bot
+# 🛠️ Drug Query Bot - Setup Guide
 
-Complete installation and deployment guide for local development and cloud deployment.
-
----
-
-## Table of Contents
-
-1. [Prerequisites](#prerequisites)
-2. [Local Development Setup](#local-development-setup)
-3. [Database Configuration](#database-configuration)
-4. [API Keys Setup](#api-keys-setup)
-5. [Data Ingestion](#data-ingestion)
-6. [Running Tests](#running-tests)
-7. [Deployment to Streamlit Cloud](#deployment-to-streamlit-cloud)
-8. [Troubleshooting](#troubleshooting)
+Complete installation and configuration guide for running the Drug Query Bot locally.
 
 ---
 
-## Prerequisites
+## 📋 Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Database Setup](#database-setup)
+- [Configuration](#configuration)
+- [Data Pipeline](#data-pipeline)
+- [Running the Application](#running-the-application)
+- [Running Tests](#running-tests)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## ✅ Prerequisites
 
 ### Required Software
-- **Python 3.11+** (recommended: 3.11.9)
-- **Git** for version control
-- **pip** (comes with Python)
+
+1. **Python 3.9 or higher**
+   ```bash
+   python --version  # Should be 3.9+
+   ```
+
+2. **Git**
+   ```bash
+   git --version
+   ```
+
+3. **pip** (Python package manager)
+   ```bash
+   pip --version
+   ```
 
 ### Required Accounts
-- **Supabase** account (free tier): https://supabase.com
-- **OpenRouter** account (pay-as-you-go): https://openrouter.ai
-- **GitHub** account (for deployment): https://github.com
-- **Streamlit Cloud** account (free): https://streamlit.io/cloud
+
+1. **Supabase** (PostgreSQL database hosting)
+   - Sign up: [https://supabase.com](https://supabase.com)
+   - Free tier is sufficient
+
+2. **OpenRouter** (LLM API access)
+   - Sign up: [https://openrouter.ai](https://openrouter.ai)
+   - Free credits available, pay-as-you-go pricing
 
 ---
 
-## Local Development Setup
+## 📥 Installation
 
 ### 1. Clone the Repository
 
@@ -41,18 +58,18 @@ git clone https://github.com/atharv2802/drug_query_bot.git
 cd drug_query_bot
 ```
 
-### 2. Create Virtual Environment
+### 2. Create Virtual Environment (Recommended)
 
 **Windows:**
 ```powershell
-python -m venv drug_query_bot
-.\drug_query_bot\Scripts\Activate.ps1
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 ```
 
-**Linux/Mac:**
+**Mac/Linux:**
 ```bash
-python3 -m venv drug_query_bot
-source drug_query_bot/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 ```
 
 ### 3. Install Dependencies
@@ -64,140 +81,256 @@ pip install -r requirements.txt
 **Dependencies installed:**
 - `streamlit==1.31.0` - Web UI framework
 - `supabase==2.10.0` - Database client
-- `websockets>=15.0` - Required for Supabase realtime
 - `pandas==2.1.4` - Data manipulation
-- `rapidfuzz==3.6.1` - Fuzzy string matching
+- `rapidfuzz==3.6.1` - Fuzzy matching
 - `requests==2.31.0` - HTTP client
-- `beautifulsoup4` - Web scraping
+- `beautifulsoup4` - HTML parsing
+- `fastapi==0.109.0` - REST API
+- `uvicorn[standard]==0.27.0` - ASGI server
 - `pytest==7.4.3` - Testing framework
 
 ---
 
-## Database Configuration
+## 🗄️ Database Setup
 
-### Step 1: Create Supabase Project
+### 1. Create Supabase Project
 
-1. Go to https://supabase.com and sign up/login
-2. Click **"New Project"**
-3. Fill in:
-   - **Name**: drug-query-bot
-   - **Database Password**: (save this securely)
-   - **Region**: Choose closest to you
-4. Wait for project to be created (~2 minutes)
+1. Go to [https://supabase.com/dashboard](https://supabase.com/dashboard)
+2. Click **New Project**
+3. Fill in details:
+   - **Name:** drug-query-bot
+   - **Database Password:** (choose a strong password)
+   - **Region:** Select closest to you
+4. Click **Create new project** (takes ~2 minutes)
 
-### Step 2: Get Supabase Credentials
+### 2. Get Database Credentials
 
-1. In your project dashboard, go to **Settings** (gear icon) → **API**
-2. Copy these values:
-   - **Project URL** (e.g., `https://xxxxx.supabase.co`)
-   - **anon/public key** (starts with `eyJ...`) - **NOT** the service_role key
+1. In Supabase dashboard, go to **Settings** → **Database**
+2. Scroll to **Connection String** section
+3. Copy the **URI** (looks like: `postgresql://postgres:[YOUR-PASSWORD]@db.xxx.supabase.co:5432/postgres`)
+4. Also note:
+   - **Project URL**: `https://xxx.supabase.co`
+   - **API Keys** → **anon public**: `eyJ...` (for public access)
+   - **API Keys** → **service_role**: `eyJ...` (for admin access)
 
-### Step 3: Create Database Schema
+### 3. Test Database Connection
 
-1. In Supabase dashboard, go to **SQL Editor**
-2. Click **"New Query"**
-3. Paste this SQL:
-
-```sql
-CREATE TABLE IF NOT EXISTS drugs (
-    drug_name TEXT PRIMARY KEY,
-    category TEXT,
-    drug_status TEXT,
-    hcpcs TEXT,
-    manufacturer TEXT,
-    pa_mnd_required TEXT,
-    notes TEXT
-);
-
-CREATE INDEX IF NOT EXISTS idx_drugs_category ON drugs(category);
-CREATE INDEX IF NOT EXISTS idx_drugs_status ON drugs(drug_status);
-CREATE INDEX IF NOT EXISTS idx_drugs_pa_mnd ON drugs(pa_mnd_required);
-CREATE INDEX IF NOT EXISTS idx_drugs_name_lower ON drugs(LOWER(drug_name));
+```bash
+# Should return version info
+python -c "import psycopg2; print('PostgreSQL connection available')"
 ```
 
-4. Click **Run** to execute
+---
 
-**Alternative (using Python script):**
+## ⚙️ Configuration
+
+### 1. Create Secrets File
+
+Create `.streamlit/secrets.toml` in the project root:
+
 ```bash
-# Requires psycopg2 and direct DATABASE_URL connection
+mkdir .streamlit
+```
+
+**Windows:**
+```powershell
+New-Item -Path ".streamlit\secrets.toml" -ItemType File
+```
+
+**Mac/Linux:**
+```bash
+touch .streamlit/secrets.toml
+```
+
+### 2. Add Configuration
+
+Edit `.streamlit/secrets.toml` and add:
+
+```toml
+# Supabase Configuration
+SUPABASE_URL = "https://xxx.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."  # anon public key
+
+# PostgreSQL Direct Connection (for schema creation and ingestion)
+DATABASE_URL = "postgresql://postgres:[PASSWORD]@db.xxx.supabase.co:5432/postgres"
+
+# OpenRouter API Key
+OPENROUTER_API_KEY = "sk-or-v1-..."
+
+# Optional: Site URL and App Name (for OpenRouter)
+SITE_URL = "https://drugquerybot.streamlit.app"
+APP_NAME = "Drug Query Bot"
+```
+
+**⚠️ Security Notes:**
+- **NEVER commit** `.streamlit/secrets.toml` to Git (already in `.gitignore`)
+- Use **environment variables** for production deployment
+- Rotate keys if accidentally exposed
+
+### 3. Verify Configuration
+
+```bash
+python -c "from utils.db import get_supabase_client; print('Supabase connection successful')"
+```
+
+---
+
+## 🔄 Data Pipeline
+
+### 1. Create Database Schema
+
+```bash
 python create_schema.py
 ```
 
----
+**What it does:**
+- Drops existing `drugs` table (if any)
+- Creates new table with composite primary key `(drug_name, category)`
+- Adds indexes on `drug_name`, `category`, `drug_status`, `hcpcs`, `pa_mnd_required`
 
-## API Keys Setup
+**Expected output:**
+```
+============================================================
+CREATING FRESH SCHEMA WITH COMPOSITE PRIMARY KEY
+============================================================
 
-### Step 1: Get OpenRouter API Key
+[1/3] Dropping existing table (if any)...
+   ✓ Old table dropped
 
-1. Go to https://openrouter.ai and sign up/login
-2. Navigate to **Keys** section or https://openrouter.ai/keys
-3. Click **"Create Key"**
-4. Name it `Drug Query Bot`
-5. Copy the generated key (starts with `sk-or-v1-`)
-6. **Add credits**: Go to **Credits** section and add at least $5
+[2/3] Creating drugs table with composite key (drug_name, category)...
+   ✓ Table created
 
-### Step 2: Configure Secrets File
+[3/3] Creating indexes for query performance...
+   ✓ Index created: idx_drugs_name
+   ✓ Index created: idx_drugs_category
+   ✓ Index created: idx_drugs_status
+   ✓ Index created: idx_drugs_hcpcs
+   ✓ Index created: idx_drugs_pa_mnd
 
-1. Navigate to `.streamlit/` directory
-2. Copy the example file:
-   ```bash
-   cp .streamlit/secrets.toml.example .streamlit/secrets.toml
-   ```
-
-3. Edit `.streamlit/secrets.toml`:
-   ```toml
-   # Supabase Configuration
-   SUPABASE_URL = "https://your-project-id.supabase.co"
-   SUPABASE_KEY = "eyJhbGci...your-anon-key..."
-
-   # OpenRouter API Key
-   OPENROUTER_API_KEY = "sk-or-v1-your-key-here"
-   ```
-
-4. Save the file
-
-**⚠️ Important**: Never commit `secrets.toml` to Git! It's already in `.gitignore`.
-
----
-
-## Data Ingestion
-
-### Option 1: Use Existing CSV Files
-
-The repository includes pre-scraped data in `data/` directory:
-- `preferred_drugs_list.csv` (1000+ drugs)
-- `pa_mnd_list.csv` (PA/MND requirements)
-
-**Ingest into database:**
-
-1. Make sure your `.streamlit/secrets.toml` is configured
-2. Run the ingestion script:
-   ```bash
-   python ingest_data.py
-   ```
-
-3. Verify data:
-   - Go to Supabase dashboard → **Table Editor**
-   - Check the `drugs` table has ~1000 rows
-
-### Option 2: Scrape Fresh Data
-
-If you want to scrape latest data from Horizon Blue Cross:
-
-```bash
-cd scraper
-python scrape_drugs.py
+============================================================
+SCHEMA CREATION COMPLETE
+============================================================
 ```
 
-This will:
-- Fetch HTML pages from formulary website
-- Parse with BeautifulSoup4
-- Generate updated CSV files in `data/` directory
-- Run `python ingest_data.py` to load into database
+### 2. Scrape Drug Data
+
+```bash
+python scraper/scrape_drugs.py
+```
+
+**What it does:**
+- Fetches HTML from Horizon BCBS website
+- Parses preferred drugs list (8 categories)
+- Parses PA/MND requirements list
+- Saves to `drugs_rows.csv`
+
+**Expected output:**
+```
+Fetching Preferred Drugs HTML...
+Parsing Preferred Drugs...
+Fetching PA/MND HTML...
+Parsing PA/MND Requirements...
+
+Total unique drugs scraped: 2000+
+Output saved to: drugs_rows.csv
+```
+
+**CSV Format:**
+```csv
+Drug Name,Category,Drug Status,HCPCS,Manufacturer,Notes
+avastin,Ophthalmic Injections,preferred,J9035,Genentech,
+avastin,Oncology/Bevacizumab,non_preferred,J9035,Genentech,
+humira,Immunology,non_preferred,J0135,AbbVie,PA required
+...
+```
+
+### 3. Ingest Data into Database
+
+```bash
+python ingest_data.py
+```
+
+**What it does:**
+- Loads `drugs_rows.csv`
+- Loads `data/preferred_drugs_list.csv` (if exists)
+- Loads `data/pa_mnd_list.csv` (if exists)
+- Merges data with composite key handling
+- Upserts to Supabase (ON CONFLICT update)
+
+**Expected output:**
+```
+Loading CSV data...
+Loaded 2000+ drug-category rows
+
+Merging data sources...
+Merged successfully
+
+Inserting into database...
+[================] 100% (2000/2000)
+
+SUCCESS: Inserted/Updated 2000+ rows
+```
+
+### 4. Verify Data
+
+```bash
+python -c "from utils.db import fetch_all_drug_names; print(f'Total drugs: {len(fetch_all_drug_names())}')"
+```
+
+**Expected:** `Total drugs: 2000+`
 
 ---
 
-## Running Tests
+## 🚀 Running the Application
+
+### Option 1: Streamlit Web App (Recommended)
+
+```bash
+streamlit run app.py
+```
+
+**Access:** Opens automatically in browser at [http://localhost:8501](http://localhost:8501)
+
+**Features:**
+- Natural language query interface
+- Autocomplete search
+- Query history
+- Debug mode (toggle in sidebar)
+- Markdown-formatted responses
+
+### Option 2: FastAPI REST API
+
+```bash
+uvicorn api:app --reload --port 8000
+```
+
+**Access:**
+- **API:** [http://localhost:8000](http://localhost:8000)
+- **Swagger Docs:** [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
+- **ReDoc:** [http://localhost:8000/api/redoc](http://localhost:8000/api/redoc)
+
+**Example API Request:**
+```bash
+curl -X POST "http://localhost:8000/api/query" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Is Humira preferred?"}'
+```
+
+### Option 3: Run Both (Different Terminals)
+
+**Terminal 1:**
+```bash
+streamlit run app.py
+```
+
+**Terminal 2:**
+```bash
+uvicorn api:app --reload --port 8000
+```
+
+---
+
+## 🧪 Running Tests
 
 ### Run All Tests
 
@@ -205,226 +338,217 @@ This will:
 pytest
 ```
 
-### Run Specific Test Suites
+### Run Specific Test Files
 
 ```bash
-# Database tests
-pytest tests/test_db.py -v
-
-# Intent parsing tests
-pytest tests/test_intent.py -v
-
-# LLM integration tests
-pytest tests/test_llm.py -v
-
-# Fuzzy matching tests
-pytest tests/test_fuzzy.py -v
-
-# Full pipeline test
-pytest tests/test_full_pipeline_supabase.py -v
-
-# Supabase connection test
-python tests/test_supabase_connection.py
+pytest tests/test_db.py          # Database tests
+pytest tests/test_intent.py      # Intent parsing tests
+pytest tests/test_fuzzy.py       # Fuzzy matching tests
+pytest tests/test_api.py         # API endpoint tests
 ```
 
 ### Run with Coverage
 
 ```bash
-pytest --cov=. --cov-report=html
-# Open htmlcov/index.html in browser to see coverage report
+pytest --cov=utils --cov=config --cov-report=html
+```
+
+**View coverage report:** Open `htmlcov/index.html` in browser
+
+### Run Single Query Test
+
+```bash
+python tests/test_single_query.py "Is Avastin preferred?"
 ```
 
 ---
 
-## Deployment to Streamlit Cloud
+## 🌐 Deployment
 
-### Step 1: Push to GitHub
+### Streamlit Cloud (Recommended for Web App)
 
-```bash
-git add .
-git commit -m "Initial commit"
-git push origin main
-```
-
-### Step 2: Deploy on Streamlit Cloud
-
-1. Go to https://streamlit.io/cloud
-2. Sign in with GitHub
-3. Click **"New app"**
-4. Fill in:
-   - **Repository**: `your-username/drug_query_bot`
-   - **Branch**: `main`
-   - **Main file path**: `app.py`
-5. Click **"Advanced settings"**
-6. Add **Secrets** (paste contents of your `.streamlit/secrets.toml`):
-   ```toml
-   SUPABASE_URL = "https://your-project-id.supabase.co"
-   SUPABASE_KEY = "eyJhbGci...your-anon-key..."
-   OPENROUTER_API_KEY = "sk-or-v1-your-key-here"
+1. **Push code to GitHub:**
+   ```bash
+   git add .
+   git commit -m "Initial deployment"
+   git push origin main
    ```
-7. Click **"Deploy"**
-8. Wait for deployment (~5 minutes)
 
-### Step 3: Verify Deployment
+2. **Deploy to Streamlit Cloud:**
+   - Go to [https://streamlit.io/cloud](https://streamlit.io/cloud)
+   - Click **New app**
+   - Select your GitHub repository
+   - Set **Main file path:** `app.py`
+   - Click **Advanced settings** → **Secrets**
+   - Copy contents of `.streamlit/secrets.toml`
+   - Click **Deploy**
 
-1. Once deployed, you'll get a URL like `https://your-app.streamlit.app`
-2. Test with sample queries:
-   - "Is Remicade preferred?"
-   - "What are the alternatives to Humira?"
-   - "List all non-preferred drugs in Antiemetics category"
+3. **Your app will be live at:** `https://your-app-name.streamlit.app`
+
+### Heroku (For FastAPI)
+
+1. **Create `Procfile`:**
+   ```
+   web: uvicorn api:app --host=0.0.0.0 --port=${PORT:-8000}
+   ```
+
+2. **Create `runtime.txt`:**
+   ```
+   python-3.9.18
+   ```
+
+3. **Deploy:**
+   ```bash
+   heroku create drug-query-api
+   heroku config:set SUPABASE_URL="..." SUPABASE_KEY="..." OPENROUTER_API_KEY="..."
+   git push heroku main
+   ```
+
+### Environment Variables (Production)
+
+Set these in your hosting platform:
+
+```bash
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_KEY=eyJ...
+DATABASE_URL=postgresql://...
+OPENROUTER_API_KEY=sk-or-v1-...
+SITE_URL=https://your-domain.com
+APP_NAME=Drug Query Bot
+```
 
 ---
 
-## Running the Application
-
-### Local Development
-
-```bash
-# Activate virtual environment (if not already active)
-.\drug_query_bot\Scripts\Activate.ps1  # Windows
-source drug_query_bot/bin/activate      # Linux/Mac
-
-# Start the app
-streamlit run app.py
-```
-
-The app will open in your browser at `http://localhost:8501`
-
----
-
-## Troubleshooting
-
-### Issue: "Database connection failed"
-
-**Solution:**
-1. Verify Supabase project is active (not paused)
-2. Check `SUPABASE_URL` and `SUPABASE_KEY` in secrets.toml
-3. Ensure you're using the **anon key**, not service_role key
-4. Test connection: `python tests/test_supabase_connection.py`
-
-### Issue: "OpenRouter API error: 401 Unauthorized"
-
-**Solution:**
-1. Check if your OpenRouter API key is valid
-2. Verify you have credits in your OpenRouter account
-3. Regenerate key if expired: https://openrouter.ai/keys
-4. Update `OPENROUTER_API_KEY` in secrets.toml
-
-### Issue: "No module named 'websockets.asyncio'"
-
-**Solution:**
-```bash
-pip install --upgrade websockets
-```
+## 🔧 Troubleshooting
 
 ### Issue: "ModuleNotFoundError: No module named 'supabase'"
 
 **Solution:**
 ```bash
-pip install -r requirements.txt --upgrade
+pip install -r requirements.txt
 ```
 
-### Issue: App runs but queries return no results
+### Issue: "Supabase client initialization failed"
+
+**Causes:**
+1. Missing or incorrect credentials in `.streamlit/secrets.toml`
+2. Incorrect `SUPABASE_URL` or `SUPABASE_KEY`
 
 **Solution:**
-1. Verify data is ingested: Check Supabase Table Editor
-2. Run ingestion: `python ingest_data.py`
-3. Check database schema: `python create_schema.py`
+1. Verify credentials in Supabase dashboard
+2. Check `.streamlit/secrets.toml` format (TOML syntax)
+3. Ensure no extra spaces or quotes
 
-### Issue: "streamlit: command not found"
+### Issue: "Failed to fetch drug names"
+
+**Causes:**
+1. Database table doesn't exist
+2. Network connectivity issues
 
 **Solution:**
-1. Ensure virtual environment is activated
-2. Reinstall streamlit: `pip install streamlit`
+1. Run `python create_schema.py` first
+2. Run `python ingest_data.py` to populate data
+3. Check internet connection
 
----
+### Issue: "OpenRouter API error: 401 Unauthorized"
 
-## Environment Variables (Alternative to secrets.toml)
+**Causes:**
+1. Invalid API key
+2. API key not set in secrets
 
-For CI/CD or Docker deployments, you can use environment variables:
+**Solution:**
+1. Verify API key at [https://openrouter.ai/keys](https://openrouter.ai/keys)
+2. Check `.streamlit/secrets.toml` has `OPENROUTER_API_KEY`
+3. Ensure no extra whitespace in key
 
+### Issue: Scraper returns empty data
+
+**Causes:**
+1. Horizon website structure changed
+2. Network/firewall blocking requests
+
+**Solution:**
+1. Check if website is accessible: [Horizon BCBS Formulary](https://www.horizonblue.com/providers/products-programs/pharmacy/pharmacy-programs/preferred-medical-drugs)
+2. Update scraper selectors if HTML changed
+3. Try with VPN if blocked
+
+### Issue: Streamlit shows "Connection Error"
+
+**Solution:**
 ```bash
-export SUPABASE_URL="https://your-project-id.supabase.co"
-export SUPABASE_KEY="eyJhbGci...your-anon-key..."
-export OPENROUTER_API_KEY="sk-or-v1-your-key-here"
+# Kill existing processes
+pkill -f streamlit
+
+# Restart
+streamlit run app.py
 ```
 
-The app will automatically detect and use these if `secrets.toml` is not present.
+### Issue: Database ingestion fails with duplicate key error
+
+**Explanation:** Composite primary key `(drug_name, category)` prevents duplicates
+
+**Solution:**
+- This is expected behavior
+- Script uses `ON CONFLICT ... DO UPDATE` to handle duplicates
+- Re-run `python ingest_data.py` safely
+
+### Issue: Tests fail with "No module named 'pytest'"
+
+**Solution:**
+```bash
+pip install pytest pytest-mock pytest-cov
+```
 
 ---
 
-## Performance Optimization
+## 📞 Support
 
-### For Large Datasets (10,000+ drugs)
+For issues not covered here:
 
-1. **Enable caching in Streamlit:**
-   - Already implemented with `@st.cache_data`
-
-2. **Database optimization:**
-   ```sql
-   -- Add more indexes if needed
-   CREATE INDEX idx_drugs_manufacturer ON drugs(manufacturer);
-   CREATE INDEX idx_drugs_hcpcs ON drugs(hcpcs);
+1. **Check existing issues:** GitHub Issues (if repository is public)
+2. **Review logs:** Check terminal output for detailed error messages
+3. **Verify configuration:** Double-check all credentials and file paths
+4. **Test components individually:**
+   ```bash
+   python -c "from utils.db import get_supabase_client; get_supabase_client()"
+   python -c "from utils.llm import call_openrouter; print('OpenRouter OK')"
    ```
 
-3. **Connection pooling:**
-   - Supabase client handles this automatically
-
 ---
 
-## Updating the Application
+## 🔄 Updating Data
 
-### Update Dependencies
+To refresh drug data from the source website:
 
 ```bash
-pip install -r requirements.txt --upgrade
+# 1. Scrape latest data
+python scraper/scrape_drugs.py
+
+# 2. Re-ingest (will update existing records)
+python ingest_data.py
 ```
 
-### Update Database Schema
-
-```bash
-python create_schema.py  # Creates new tables/indexes
-```
-
-### Re-ingest Data
-
-```bash
-python ingest_data.py  # Refreshes all data
-```
+**Note:** No need to re-run `create_schema.py` unless schema changes.
 
 ---
 
-## Security Best Practices
+## 🎓 Development Workflow
 
-✅ **DO:**
-- Use environment variables or secrets.toml for API keys
-- Use Supabase **anon key** (not service_role key)
-- Enable Row Level Security (RLS) in Supabase for production
-- Rotate API keys regularly
-- Use HTTPS for all deployments
-
-❌ **DON'T:**
-- Commit secrets.toml to Git
-- Share API keys publicly
-- Use service_role key in client-side code
-- Hardcode credentials in source code
+1. **Make changes** to code
+2. **Run tests:** `pytest`
+3. **Test locally:** `streamlit run app.py`
+4. **Commit:** `git commit -m "Description"`
+5. **Push:** `git push origin main`
+6. **Deploy:** Streamlit Cloud auto-deploys from GitHub
 
 ---
 
-## Additional Resources
+**Setup complete! 🎉**
 
-- **Streamlit Docs**: https://docs.streamlit.io
-- **Supabase Docs**: https://supabase.com/docs
-- **OpenRouter Docs**: https://openrouter.ai/docs
-- **RapidFuzz Docs**: https://rapidfuzz.github.io/RapidFuzz/
+You should now have:
+- ✅ Database schema created
+- ✅ Data scraped and ingested
+- ✅ Application running locally
+- ✅ Tests passing
 
----
-
-## Need Help?
-
-- **GitHub Issues**: https://github.com/atharv2802/drug_query_bot/issues
-- **Email**: (your-email@example.com)
-
----
-
-**Setup complete! 🎉 Your Drug Query Bot is ready to use.**
+**Next:** Try queries like "Is Avastin preferred?" or "Alternatives to Humira"

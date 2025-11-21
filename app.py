@@ -13,7 +13,10 @@ from utils.db import (
     fetch_alternatives,
     filter_drugs,
     fetch_all_drug_names,
-    get_all_categories
+    get_all_categories,
+    fuzzy_search_drug_db,
+    autocomplete_drug_search,
+    suggest_corrections
 )
 from utils.intent import (
     parse_query_rules_based,
@@ -41,6 +44,10 @@ def init_session_state():
         st.session_state.debug_mode = False
     if 'query_history' not in st.session_state:
         st.session_state.query_history = []
+    if 'autocomplete_suggestions' not in st.session_state:
+        st.session_state.autocomplete_suggestions = []
+    if 'selected_drug' not in st.session_state:
+        st.session_state.selected_drug = None
 
 
 def display_header():
@@ -83,7 +90,9 @@ def execute_query(parsed_intent: Dict[str, Any]) -> List[Dict[str, Any]]:
             st.warning("Could not identify a drug name to find alternatives for.")
             return []
         
-        return fetch_alternatives(drug_name)
+        # Pass drug_status filter if specified (None means all statuses)
+        drug_status_filter = filters.get('drug_status') if filters else None
+        return fetch_alternatives(drug_name, drug_status_filter)
     
     elif query_type == 'list_filter':
         return filter_drugs(filters)
@@ -100,13 +109,19 @@ def display_results_table(results: List[Dict[str, Any]]):
     # Convert to DataFrame for better display
     df = pd.DataFrame(results)
     
+    # Format categories array as comma-separated string
+    if 'categories' in df.columns:
+        df['categories'] = df['categories'].apply(
+            lambda x: ', '.join(x) if isinstance(x, list) and x else 'N/A'
+        )
+    
     # Remove internal fuzzy match columns if present
     columns_to_drop = ['_fuzzy_match', '_fuzzy_confidence', '_original_query']
     df = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
     
     # Reorder columns for better readability
     preferred_order = [
-        'drug_name', 'drug_status', 'category', 
+        'drug_name', 'drug_status', 'categories', 
         'pa_required', 'mnd_required', 
         'hcpcs', 'manufacturer', 'notes'
     ]
@@ -143,7 +158,7 @@ def display_debug_info(parsed_intent: Dict[str, Any], results: List[Dict[str, An
 
 def process_query(query: str):
     """
-    Main query processing pipeline.
+    Main query processing pipeline with lazy loading optimization.
     
     Args:
         query: User's natural language query
@@ -156,16 +171,70 @@ def process_query(query: str):
     status_container = st.empty()
     
     try:
-        # Step 1: Fetch all drug names for fuzzy matching
+        # Step 1: Parse query using rule-based approach (NO drug name loading yet)
         status_container.info("🔍 Understanding your query...")
-        all_drug_names = fetch_all_drug_names()
         
-        # Step 2: Parse query using rule-based approach
-        parsed_intent = parse_query_rules_based(query, all_drug_names)
+        # Lazy loading: Only fetch drug names if needed for fuzzy matching
+        all_drug_names = None
+        
+        # Initial parse without drug names (for query type detection)
+        from utils.intent import detect_query_type, extract_filters
+        query_type, type_confidence = detect_query_type(query)
+        filters = extract_filters(query)
+        
+        parsed_intent = {
+            'query_type': query_type,
+            'confidence': type_confidence,
+            'drug_name': None,
+            'drug_confidence': 0,
+            'filters': filters,
+            'method': 'rule_based'
+        }
+        
+        # Step 2: Only load drug names if we need to extract a drug name
+        if query_type in ['drug_status', 'alternatives']:
+            # Try database-side fuzzy search first (more efficient)
+            from utils.fuzzy import extract_drug_name_from_query
+            
+            # Quick extraction attempt without full list
+            potential_drug = extract_drug_name_from_query(query, [])
+            if potential_drug and potential_drug[0]:
+                # Try DB-side fuzzy search
+                db_matches = fuzzy_search_drug_db(potential_drug[0], limit=3)
+                
+                if db_matches and db_matches[0][1] >= 70:
+                    # Found good match using DB search
+                    parsed_intent['drug_name'] = db_matches[0][0]
+                    parsed_intent['drug_confidence'] = db_matches[0][1]
+                    
+                    # Show "Did you mean?" if confidence is between 70-90
+                    if 70 <= db_matches[0][1] < 90 and len(db_matches) > 1:
+                        suggestions = [name for name, score in db_matches[:3]]
+                        st.info(f"💡 Did you mean: {', '.join(suggestions)}?")
+                else:
+                    # Fallback to loading all names for client-side fuzzy matching
+                    status_container.info("🔍 Loading drug database for fuzzy matching...")
+                    all_drug_names = fetch_all_drug_names()
+                    drug_name, drug_confidence, _ = extract_drug_name_from_query(query, all_drug_names)
+                    parsed_intent['drug_name'] = drug_name
+                    parsed_intent['drug_confidence'] = drug_confidence
+                    
+                    # Show "Did you mean?" suggestions
+                    if drug_name and drug_confidence < 90:
+                        suggestions = suggest_corrections(query, threshold=0.7, limit=3)
+                        if suggestions:
+                            suggestion_names = [name for name, _ in suggestions[:3] if name != drug_name]
+                            if suggestion_names:
+                                st.info(f"💡 Did you mean: {', '.join(suggestion_names)}?")
         
         # Step 3: Check if LLM fallback is needed
         if should_use_llm_fallback(parsed_intent):
-            status_container.info(" Using AI to better understand your query...")
+            status_container.info("🤖 Using AI to better understand your query...")
+            
+            # Load drug names if not already loaded
+            if all_drug_names is None:
+                all_drug_names = fetch_all_drug_names()
+            
             llm_intent = extract_intent_with_llm(query, all_drug_names)
             
             if llm_intent:
@@ -180,15 +249,21 @@ def process_query(query: str):
                     parsed_intent['filters'].update(llm_intent['filters'])
         
         # Step 4: Execute database query
-        status_container.info(" Searching database...")
+        status_container.info("🔎 Searching database...")
         results = execute_query(parsed_intent)
         
-        # Step 5: Generate answer with LLM
-        status_container.info(" Formatting answer...")
+        # Step 5: Generate answer with LLM (always use LLM for consistent, high-quality answers)
+        status_container.info("✨ Generating answer...")
         answer = generate_answer_with_llm(
             query=query,
             query_type=parsed_intent['query_type'],
-            results=results
+            results=results,
+            context={
+                'intent': parsed_intent,
+                'filters': parsed_intent.get('filters', {}),
+                'drug_name': parsed_intent.get('drug_name'),
+                'confidence': parsed_intent.get('confidence', 0)
+            }
         )
         
         # Clear status
@@ -198,8 +273,8 @@ def process_query(query: str):
         st.markdown("### Answer")
         st.markdown(answer)
         
-        # Display results table only if more than 10 results
-        if results and len(results) > 10:
+        # Display results table for drug lists
+        if results and (len(results) > 1 or parsed_intent['query_type'] == 'list_filter'):
             st.markdown("### Detailed Results")
             display_results_table(results)
         
@@ -252,12 +327,47 @@ def main():
     # Main query interface
     st.markdown("Ask a Question")
     
+    # Autocomplete drug search (optional quick lookup)
+    with st.expander("🔍 Quick Drug Lookup (Autocomplete)", expanded=False):
+        autocomplete_query = st.text_input(
+            "Start typing a drug name:",
+            key="autocomplete_input",
+            placeholder="e.g., Remi...",
+            help="Get quick suggestions as you type"
+        )
+        
+        if autocomplete_query and len(autocomplete_query) >= 2:
+            suggestions = autocomplete_drug_search(autocomplete_query, limit=10)
+            if suggestions:
+                st.markdown("**Suggestions:**")
+                cols = st.columns(2)
+                for idx, drug in enumerate(suggestions):
+                    col_idx = idx % 2
+                    with cols[col_idx]:
+                        status_emoji = "✅" if drug.get('drug_status') == 'preferred' else "⚠️"
+                        if st.button(
+                            f"{status_emoji} {drug['drug_name']} ({drug.get('category', 'N/A')})",
+                            key=f"autocomplete_{idx}",
+                            use_container_width=True
+                        ):
+                            st.session_state.selected_drug = drug['drug_name']
+                            st.rerun()
+            else:
+                st.info("No suggestions found. Try a different spelling.")
+    
+    # If a drug was selected from autocomplete, pre-fill the query
+    default_query = ""
+    if st.session_state.selected_drug:
+        default_query = f"What is the status of {st.session_state.selected_drug}?"
+        st.session_state.selected_drug = None  # Reset after use
+    
     # Query input
     col1, col2 = st.columns([4, 1])
     
     with col1:
         query = st.text_input(
             "Enter your question:",
+            value=default_query,
             placeholder="e.g., Is Remicade preferred? Does it require PA?",
             label_visibility="collapsed"
         )

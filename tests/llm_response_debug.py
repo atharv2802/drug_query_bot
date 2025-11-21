@@ -23,7 +23,7 @@ if not API_KEY:
     print("ERROR: OPENROUTER_API_KEY not found in environment. Set it before running.")
     sys.exit(1)
 MODEL = "meta-llama/llama-3-70b-instruct"
-QUERY = "Suggest generic preferred drugs for Antiemetics category"
+QUERY = "List both preferred and not preferred alternatives to Mvasi?"
 PROMPT = INTENT_EXTRACTION_PROMPT.format(query=QUERY)
 
 headers = {

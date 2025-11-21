@@ -1,134 +1,128 @@
-Category,Drug Status,Drug Name,HCPCS,Manufacturer
-Antiemetics,Preferred,Kytril,J1626,Generic
-Antiemetics,Preferred,Zofran,J2405,Generic
-Antiemetics,Non-preferred,Aloxi,J2469,Helsinn
-Antiemetics,Non-preferred,Sustol,J1627,Heron
-Bendamustines,Preferred,Belrapzo,J0586,Eagle
-Bendamustines,Non-preferred,Bendamustine (505 B2),J9059,Baxter
-Bendamustines,Non-preferred,Bendamustine (505 B2),J9058,Apotex
-Bendamustines,Preferred,Bendeka,J0587,Teva
-Bendamustines,Non-preferred,Treanda,J0585,Cephalon
-Bendamustines,Non-preferred,Vivimusta,J9056,Slayback
-Bone Resorption Inhibitors (Osteoporosis),Preferred,Reclast,J3489,Generic
-Bone Resorption Inhibitors (Osteoporosis),Non-preferred,Boniva,J1740,Generic
-Bone Resorption Inhibitors (Osteoporosis),Non-preferred,Forteo,J3110,Lilly
-Bone Resorption Inhibitors (Osteoporosis),Non-preferred,Prolia,J0897,Amgen
-Bortezomibs,Preferred,Velcade/Velcade Generic,J9041,Millenium
-Bortezomibs,Non-preferred,Bortezomib (505B2),J9046,Dr. Reddy’s
-Bortezomibs,Non-preferred,Bortezomib (505B2),J9048,Fresenius
-Bortezomibs,Non-preferred,Bortezomib (505B2),J9049,Hospira
-Bortezomibs,Non-preferred,Bortezomib (505B2),J9051,Maia Pharma
-Botulinum Toxins,Preferred,Botox,J0585,Allergan
-Botulinum Toxins,Non-preferred,Dysport,J0586,Ipsen
-Botulinum Toxins,Non-preferred,Myobloc,J0587,Solstice
-Botulinum Toxins,Non-preferred,Xeomin,J0588,Merz
-Colony-Stimulating Factors (Long Acting),Non-preferred,Fulphila,Q5108,Mylan
-Colony-Stimulating Factors (Long Acting),Preferred,Neulasta/Neulasta Onpro,J2505,Amgen
-Colony-Stimulating Factors (Long Acting),Preferred,Udenyca/Udencya On-Body,Q5111,Coherus
-Colony-Stimulating Factors (Long Acting),Non-preferred,Fylnetra,J3590,Amneal
-Colony-Stimulating Factors (Long Acting),Non-preferred,Nyvepria,Q5122,Pfizer
-Colony-Stimulating Factors (Long Acting),Non-preferred,Fylnetra,J3590,Amneal
-Colony-Stimulating Factors (Long Acting),Non-preferred,Rolvedon,J3590,Spectrum
-Colony-Stimulating Factors (Long Acting),Non-preferred,Ryzneuta,J3590,Evive
-Colony-Stimulating Factors (Long Acting),Non-preferred,Stimufend,J3590,Fresenius Kabi
-Colony-Stimulating Factors (Long Acting),Non-preferred,Ziextenzo,Q5120,Sandoz
-Colony-Stimulating Factors (Short Acting),Preferred,Granix,J1447,Teva
-Colony-Stimulating Factors (Short Acting),Preferred,Zarxio,Q5101,Sandoz
-Colony-Stimulating Factors (Short Acting),Non-preferred,Neupogen,J1442,Amgen
-Colony-Stimulating Factors (Short Acting),Non-preferred,Nivestym,Q5110,Pfizer
-Colony-Stimulating Factors (Short Acting),Non-preferred,Releuko,J3590,Amneal
-Complement Inhibitors – NMOSD,Preferred,Ultomiris,J1303,Alexion
-Complement Inhibitors – NMOSD,Non-preferred,Soliris,J1300,Alexion
-Complement Inhibitors – NMOSD,Non-preferred,Uplizna,J1823,Horizon
-Contraceptives,Preferred,Kyleena,J7296,Bayer
-Contraceptives,Preferred,Mirena,J7298,Bayer
-Contraceptives,Preferred,Skyla,J7301,Bayer
-Contraceptives,Non-preferred,Liletta,J7297,Allergan
-Contraceptives,Non-preferred,Paragard,J7300,Teva
-Enzyme Replacement Therapy (Gaucher's),Preferred,Cerdelga,NOC,Genzyme
-Enzyme Replacement Therapy (Gaucher's),Preferred,Cerezyme,J1786,Genzyme
-Enzyme Replacement Therapy (Gaucher's),Non-preferred,Elelyso,J3060,Pfizer
-Enzyme Replacement Therapy (Gaucher's),Non-preferred,Vpriv,J3385,Shire
-Enzyme Replacement Therapy (Gaucher's),Non-preferred,Zavesca,NOC,Actelion
-Erythropoiesis-Stimulating Agents,Preferred,Retacrit,Q5106,Pfizer
-Erythropoiesis-Stimulating Agents,Preferred,Retacrit (Esrd),Q5105,Pfizer
-Erythropoiesis-Stimulating Agents,Non-preferred,Aranesp,J0881,Amgen
-Erythropoiesis-Stimulating Agents,Non-preferred,Aranesp (Esrd),J0882,Amgen
-Erythropoiesis-Stimulating Agents,Non-preferred,Epogen,J0885,Amgen
-Erythropoiesis-Stimulating Agents,Non-preferred,Epogen (Esrd),Q4081,Amgen
-Erythropoiesis-Stimulating Agents,Non-preferred,Mircera,J0888,Roche
-Erythropoiesis-Stimulating Agents,Non-preferred,Mircera (Esrd),J0887,Roche
-Erythropoiesis-Stimulating Agents,Non-preferred,Procrit,J0885,Janssen
-Erythropoiesis-Stimulating Agents,Non-preferred,Procrit (Esrd),Q4081,Janssen
-Folinic Acids,Preferred,Leucovorin,J0640,Generic
-Folinic Acids,Non-preferred,Fusilev,J0641,Generic
-Folinic Acids,Non-preferred,Khapzory,J0642,Acrotech
-Generalized Myasthenia Gravis,preferred,Rystiggo,J3590,UCB
-Generalized Myasthenia Gravis,Non-preferred,Soliris,J1300,Alexion
-Generalized Myasthenia Gravis,Non-preferred,Ultomiris,J1303,Alexion
-Generalized Myasthenia Gravis,Preferred,Vyvgart,J9332,Argenx
-Generalized Myasthenia Gravis,Preferred,Vyvgart Hytrulo,J3590,Argenx
-Infliximabs,Preferred,Avsola,Q5121,Amgen
-Infliximabs,Preferred,Inflectra,Q5103,Pfizer
-Infliximabs,Preferred,Remicade,J1745,Janssen
-Infliximabs,Preferred,Renflexis,Q5104,Organon
-Intravenous Immune Globulin,Preferred,Alyglo,J1599,GC Biopharma
-Intravenous Immune Globulin,Preferred,Bivigam,J1556,Biotest
-Intravenous Immune Globulin,Preferred,Flebogamma,J1572,Grifols
-Intravenous Immune Globulin,Preferred,Gammagard Liquid,J1569,Baxalta
-Intravenous Immune Globulin,Preferred,Gammagard S/D,J1566,Baxalta
-Intravenous Immune Globulin,Preferred,Gammaked,J1561,Kedrion
-Intravenous Immune Globulin,Preferred,Gamunex-C,J1561,Grifols
-Intravenous Immune Globulin,Preferred,Gammaplex,J1557,Bio Products
-Intravenous Immune Globulin,Preferred,Octagam,J1568,Octapharma
-Intravenous Immune Globulin,Preferred,Privigen,J1459,CSL Behring
-Intravenous Immune Globulin,Non-preferred,Asceniv,J1554,Adma
-"Iron, Intravenous",Preferred,Dexferrum,J1750,American Reagent
-"Iron, Intravenous",Preferred,Feraheme,Q0138,AMAG
-"Iron, Intravenous",Preferred,Feraheme (Esrd),Q0139,AMAG
-"Iron, Intravenous",Preferred,Ferrlecit,J2916,Sanofi
-"Iron, Intravenous",Preferred,Infed,J1750,Allergan
-"Iron, Intravenous",Preferred,Injectafer,J1439,American Reagent
-"Iron, Intravenous",Preferred,Venofer,J1756,American Reagent
-Oncology/Bevacizumab,Preferred,Mvasi,Q5107,Amgen
-Oncology/Bevacizumab,Preferred,Zirabev,Q5118,Pfizer
-Oncology/Bevacizumab,Non-preferred,Alymsys,J9999,Amneal
-Oncology/Bevacizumab,Non-preferred,Avastin,J9035,Genentech
-Oncology/Bevacizumab,Non-preferred,Avzivi,Q5129,Bio-Thera
-Oncology/Bevacizumab,Non-preferred,Vegzelma,J9999,Celltrion
-Oncology/Rituximab,Preferred,Ruxience,Q5119,Pfizer
-Oncology/Rituximab,Preferred,Truxima,Q5115,Teva
-Oncology/Rituximab,Non-preferred,Riabni,NOC,Amgen
-Oncology/Rituximab,Non-preferred,Rituxan,J9312,Genentech
-Oncology/Taxanes,preferred,Abraxane,J9264,Celgene
-Oncology/Taxanes,preferred,Paclitaxel Protein Bound,J9259,American Reagent
-Oncology/Taxanes,preferred,Paclitaxel Protein Bound,J9999,Teva
-Oncology/Taxanes,Preferred,Taxol,J9267,Generic
-Oncology/Trastuzumab,Non-preferred,Herceptin,J9355,Genentech
-Oncology/Trastuzumab,Non-preferred,Herzuma,Q5113,Teva
-Oncology/Trastuzumab,Preferred,Kanjinti,Q5117,Amgen
-Oncology/Trastuzumab,Non-preferred,Ogivri,Q5114,Mylan
-Oncology/Trastuzumab,Non-preferred,Ontruzant,Q5112,Organon
-Oncology/Trastuzumab,Preferred,Trazimera,Q5116,Pfizer
-Ophthalmic Injections,Preferred,Avastin,C9257,Genentech
-Ophthalmic Injections,Preferred,Beovu,J0179,Novartis
-Ophthalmic Injections,Preferred,Eylea,J0178,Regeneron
-Ophthalmic Injections,Non-preferred,Eylea Hd,J0177,Regeneron
-Ophthalmic Injections,Preferred,Lucentis,J2778,Genentech
-Ophthalmic Injections,Preferred,Byooviz,Q5124,Biogen
-Ophthalmic Injections,Preferred,Cimerli,J3590,Coherus
-Ophthalmic Injections,Non-preferred,Susvimo,J2779,Genentech
-Ophthalmic Injections,Non-preferred,Vabysmo,C9097,Genentech
-Viscosupplementation,Preferred,Euflexxa,J7323,Ferring
-Viscosupplementation,Preferred,Monovisc,J7327,Depuy
-Viscosupplementation,Preferred,Orthovisc,J7324,Depuy
-Viscosupplementation,Non-preferred,Synvisc/One,J7325,Genzyme
-Viscosupplementation,Non-preferred,Durolane,J7318,Bioventus
-Viscosupplementation,Non-preferred,Gel-One,J7326,Zimmer
-Viscosupplementation,Non-preferred,Gelsyn-3,J7328,Bioventus
-Viscosupplementation,Non-preferred,Genvisc 850,J7320,OrthogenRx
-Viscosupplementation,Non-preferred,Hyalgan,J7321,Fidia
-Viscosupplementation,Non-preferred,Hymovis,J7322,Fidia
-Viscosupplementation,Non-preferred,Supartz,J7321,Bioventus
-Viscosupplementation,Non-preferred,Trivisc,J7329,OrthogenRx
-Viscosupplementation,Non-preferred,Visco-3,J7321,Zimmer
+Drug Name,Category,Drug Status,HCPCS,Manufacturer
+Kytril,Antiemetics,Preferred,J1626,Generic
+Zofran,Antiemetics,Preferred,J2405,Generic
+Aloxi,Antiemetics,Non-preferred,J2469,Helsinn
+Sustol,Antiemetics,Non-preferred,J1627,Heron
+Belrapzo,Bendamustines,Preferred,J0586,Eagle
+Bendamustine (505 B2),Bendamustines,Non-preferred,J9059,Baxter
+Bendeka,Bendamustines,Preferred,J0587,Teva
+Treanda,Bendamustines,Non-preferred,J0585,Cephalon
+Vivimusta,Bendamustines,Non-preferred,J9056,Slayback
+Reclast,Bone Resorption Inhibitors (Osteoporosis),Preferred,J3489,Generic
+Boniva,Bone Resorption Inhibitors (Osteoporosis),Non-preferred,J1740,Generic
+Forteo,Bone Resorption Inhibitors (Osteoporosis),Non-preferred,J3110,Lilly
+Prolia,Bone Resorption Inhibitors (Osteoporosis),Non-preferred,J0897,Amgen
+Velcade/Velcade Generic,Bortezomibs,Preferred,J9041,Millenium
+Bortezomib (505B2),Bortezomibs,Non-preferred,J9046,Dr. Reddy’s
+Botox,Botulinum Toxins,Preferred,J0585,Allergan
+Dysport,Botulinum Toxins,Non-preferred,J0586,Ipsen
+Myobloc,Botulinum Toxins,Non-preferred,J0587,Solstice
+Xeomin,Botulinum Toxins,Non-preferred,J0588,Merz
+Fulphila,Colony-Stimulating Factors (Long Acting),Non-preferred,Q5108,Mylan
+Neulasta/Neulasta Onpro,Colony-Stimulating Factors (Long Acting),Preferred,J2505,Amgen
+Udenyca/Udencya On-Body,Colony-Stimulating Factors (Long Acting),Preferred,Q5111,Coherus
+Fylnetra,Colony-Stimulating Factors (Long Acting),Non-preferred,J3590,Amneal
+Nyvepria,Colony-Stimulating Factors (Long Acting),Non-preferred,Q5122,Pfizer
+Rolvedon,Colony-Stimulating Factors (Long Acting),Non-preferred,J3590,Spectrum
+Ryzneuta,Colony-Stimulating Factors (Long Acting),Non-preferred,J3590,Evive
+Stimufend,Colony-Stimulating Factors (Long Acting),Non-preferred,J3590,Fresenius Kabi
+Ziextenzo,Colony-Stimulating Factors (Long Acting),Non-preferred,Q5120,Sandoz
+Granix,Colony-Stimulating Factors (Short Acting),Preferred,J1447,Teva
+Zarxio,Colony-Stimulating Factors (Short Acting),Preferred,Q5101,Sandoz
+Neupogen,Colony-Stimulating Factors (Short Acting),Non-preferred,J1442,Amgen
+Nivestym,Colony-Stimulating Factors (Short Acting),Non-preferred,Q5110,Pfizer
+Releuko,Colony-Stimulating Factors (Short Acting),Non-preferred,J3590,Amneal
+Ultomiris,Complement Inhibitors – NMOSD,Preferred,J1303,Alexion
+Soliris,Complement Inhibitors – NMOSD,Non-preferred,J1300,Alexion
+Uplizna,Complement Inhibitors – NMOSD,Non-preferred,J1823,Horizon
+Kyleena,Contraceptives,Preferred,J7296,Bayer
+Mirena,Contraceptives,Preferred,J7298,Bayer
+Skyla,Contraceptives,Preferred,J7301,Bayer
+Liletta,Contraceptives,Non-preferred,J7297,Allergan
+Paragard,Contraceptives,Non-preferred,J7300,Teva
+Cerdelga,Enzyme Replacement Therapy (Gaucher's),Preferred,NOC,Genzyme
+Cerezyme,Enzyme Replacement Therapy (Gaucher's),Preferred,J1786,Genzyme
+Elelyso,Enzyme Replacement Therapy (Gaucher's),Non-preferred,J3060,Pfizer
+Vpriv,Enzyme Replacement Therapy (Gaucher's),Non-preferred,J3385,Shire
+Zavesca,Enzyme Replacement Therapy (Gaucher's),Non-preferred,NOC,Actelion
+Retacrit,Erythropoiesis-Stimulating Agents,Preferred,Q5106,Pfizer
+Retacrit (Esrd),Erythropoiesis-Stimulating Agents,Preferred,Q5105,Pfizer
+Aranesp,Erythropoiesis-Stimulating Agents,Non-preferred,J0881,Amgen
+Aranesp (Esrd),Erythropoiesis-Stimulating Agents,Non-preferred,J0882,Amgen
+Epogen,Erythropoiesis-Stimulating Agents,Non-preferred,J0885,Amgen
+Epogen (Esrd),Erythropoiesis-Stimulating Agents,Non-preferred,Q4081,Amgen
+Mircera,Erythropoiesis-Stimulating Agents,Non-preferred,J0888,Roche
+Mircera (Esrd),Erythropoiesis-Stimulating Agents,Non-preferred,J0887,Roche
+Procrit,Erythropoiesis-Stimulating Agents,Non-preferred,J0885,Janssen
+Procrit (Esrd),Erythropoiesis-Stimulating Agents,Non-preferred,Q4081,Janssen
+Leucovorin,Folinic Acids,Preferred,J0640,Generic
+Fusilev,Folinic Acids,Non-preferred,J0641,Generic
+Khapzory,Folinic Acids,Non-preferred,J0642,Acrotech
+Rystiggo,Generalized Myasthenia Gravis,preferred,J3590,UCB
+Soliris,Generalized Myasthenia Gravis,Non-preferred,J1300,Alexion
+Ultomiris,Generalized Myasthenia Gravis,Non-preferred,J1303,Alexion
+Vyvgart,Generalized Myasthenia Gravis,Preferred,J9332,Argenx
+Vyvgart Hytrulo,Generalized Myasthenia Gravis,Preferred,J3590,Argenx
+Avsola,Infliximabs,Preferred,Q5121,Amgen
+Inflectra,Infliximabs,Preferred,Q5103,Pfizer
+Remicade,Infliximabs,Preferred,J1745,Janssen
+Renflexis,Infliximabs,Preferred,Q5104,Organon
+Alyglo,Intravenous Immune Globulin,Preferred,J1599,GC Biopharma
+Bivigam,Intravenous Immune Globulin,Preferred,J1556,Biotest
+Flebogamma,Intravenous Immune Globulin,Preferred,J1572,Grifols
+Gammagard Liquid,Intravenous Immune Globulin,Preferred,J1569,Baxalta
+Gammagard S/D,Intravenous Immune Globulin,Preferred,J1566,Baxalta
+Gammaked,Intravenous Immune Globulin,Preferred,J1561,Kedrion
+Gamunex-C,Intravenous Immune Globulin,Preferred,J1561,Grifols
+Gammaplex,Intravenous Immune Globulin,Preferred,J1557,Bio Products
+Octagam,Intravenous Immune Globulin,Preferred,J1568,Octapharma
+Privigen,Intravenous Immune Globulin,Preferred,J1459,CSL Behring
+Asceniv,Intravenous Immune Globulin,Non-preferred,J1554,Adma
+Dexferrum,"Iron, Intravenous",Preferred,J1750,American Reagent
+Feraheme,"Iron, Intravenous",Preferred,Q0138,AMAG
+Feraheme (Esrd),"Iron, Intravenous",Preferred,Q0139,AMAG
+Ferrlecit,"Iron, Intravenous",Preferred,J2916,Sanofi
+Infed,"Iron, Intravenous",Preferred,J1750,Allergan
+Injectafer,"Iron, Intravenous",Preferred,J1439,American Reagent
+Venofer,"Iron, Intravenous",Preferred,J1756,American Reagent
+Mvasi,Oncology/Bevacizumab,Preferred,Q5107,Amgen
+Zirabev,Oncology/Bevacizumab,Preferred,Q5118,Pfizer
+Alymsys,Oncology/Bevacizumab,Non-preferred,J9999,Amneal
+Avastin,Oncology/Bevacizumab,Non-preferred,J9035,Genentech
+Avzivi,Oncology/Bevacizumab,Non-preferred,Q5129,Bio-Thera
+Vegzelma,Oncology/Bevacizumab,Non-preferred,J9999,Celltrion
+Ruxience,Oncology/Rituximab,Preferred,Q5119,Pfizer
+Truxima,Oncology/Rituximab,Preferred,Q5115,Teva
+Riabni,Oncology/Rituximab,Non-preferred,NOC,Amgen
+Rituxan,Oncology/Rituximab,Non-preferred,J9312,Genentech
+Abraxane,Oncology/Taxanes,preferred,J9264,Celgene
+Paclitaxel Protein Bound,Oncology/Taxanes,preferred,J9259,American Reagent
+Taxol,Oncology/Taxanes,Preferred,J9267,Generic
+Herceptin,Oncology/Trastuzumab,Non-preferred,J9355,Genentech
+Herzuma,Oncology/Trastuzumab,Non-preferred,Q5113,Teva
+Kanjinti,Oncology/Trastuzumab,Preferred,Q5117,Amgen
+Ogivri,Oncology/Trastuzumab,Non-preferred,Q5114,Mylan
+Ontruzant,Oncology/Trastuzumab,Non-preferred,Q5112,Organon
+Trazimera,Oncology/Trastuzumab,Preferred,Q5116,Pfizer
+Avastin,Ophthalmic Injections,Preferred,C9257,Genentech
+Beovu,Ophthalmic Injections,Preferred,J0179,Novartis
+Eylea,Ophthalmic Injections,Preferred,J0178,Regeneron
+Eylea Hd,Ophthalmic Injections,Non-preferred,J0177,Regeneron
+Lucentis,Ophthalmic Injections,Preferred,J2778,Genentech
+Byooviz,Ophthalmic Injections,Preferred,Q5124,Biogen
+Cimerli,Ophthalmic Injections,Preferred,J3590,Coherus
+Susvimo,Ophthalmic Injections,Non-preferred,J2779,Genentech
+Vabysmo,Ophthalmic Injections,Non-preferred,C9097,Genentech
+Euflexxa,Viscosupplementation,Preferred,J7323,Ferring
+Monovisc,Viscosupplementation,Preferred,J7327,Depuy
+Orthovisc,Viscosupplementation,Preferred,J7324,Depuy
+Synvisc/One,Viscosupplementation,Non-preferred,J7325,Genzyme
+Durolane,Viscosupplementation,Non-preferred,J7318,Bioventus
+Gel-One,Viscosupplementation,Non-preferred,J7326,Zimmer
+Gelsyn-3,Viscosupplementation,Non-preferred,J7328,Bioventus
+Genvisc 850,Viscosupplementation,Non-preferred,J7320,OrthogenRx
+Hyalgan,Viscosupplementation,Non-preferred,J7321,Fidia
+Hymovis,Viscosupplementation,Non-preferred,J7322,Fidia
+Supartz,Viscosupplementation,Non-preferred,J7321,Bioventus
+Trivisc,Viscosupplementation,Non-preferred,J7329,OrthogenRx
+Visco-3,Viscosupplementation,Non-preferred,J7321,Zimmer
