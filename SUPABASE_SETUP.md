@@ -12,7 +12,6 @@ Your project URL in the format: `https://your-project-id.supabase.co`
 4. Click **API**
 5. Find **Project URL** - copy this value
 
-Example: `https://tdgkmoqqbjsnojvpundd.supabase.co`
 
 ## 2. SUPABASE_KEY (anon/public key)
 This is a long JWT token that starts with `eyJ...`
@@ -23,7 +22,6 @@ This is a long JWT token that starts with `eyJ...`
 3. Copy the **anon** **public** key (NOT the service_role key)
 4. It should be a very long string starting with `eyJ`
 
-Example: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkZ2ttb3FxYmpzbm9qdnB1bmRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE5MzgwMjEsImV4cCI6MjA0NzUxNDAyMX0.qQzRvJm9YEhj8fHXAXUBk_0y-pXSrQ0Y8FVVqKJqYGw`
 
 ## 3. Update your secrets.toml
 
