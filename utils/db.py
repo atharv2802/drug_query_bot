@@ -263,37 +263,57 @@ def filter_drugs(filters: Dict[str, Any]) -> List[Dict[str, Any]]:
     
     supabase = get_supabase_client()
     try:
-        query = supabase.table("drugs").select("*")
+        # Build base query with filters
+        def build_query(offset, page_size):
+            query = supabase.table("drugs").select("*")
+            
+            if filters.get('drug_status'):
+                # Normalize to match DB values
+                status = filters['drug_status'].lower().replace('-', '_')
+                if status in ['preferred', 'non_preferred', 'not_listed']:
+                    query = query.eq("drug_status", status)
+            
+            if filters.get('pa_mnd_required'):
+                # Normalize to match DB values
+                pa_mnd = filters['pa_mnd_required'].lower() if isinstance(filters['pa_mnd_required'], str) else filters['pa_mnd_required']
+                if pa_mnd in ['yes', 'no', 'unknown']:
+                    query = query.eq("pa_mnd_required", pa_mnd)
+            
+            if filters.get('category'):
+                # Category is now a single value per row - use equality
+                category_filter = filters['category']
+                query = query.ilike("category", f"%{category_filter}%")
+            
+            if filters.get('hcpcs'):
+                query = query.eq("hcpcs", filters['hcpcs'])
+            
+            if filters.get('manufacturer'):
+                manufacturer = filters['manufacturer']
+                query = query.ilike("manufacturer", f"%{manufacturer}%")
+            
+            return query.order("drug_name").range(offset, offset + page_size - 1)
         
-        if filters.get('drug_status'):
-            # Normalize to match DB values
-            status = filters['drug_status'].lower().replace('-', '_')
-            if status in ['preferred', 'non_preferred', 'not_listed']:
-                query = query.eq("drug_status", status)
+        # Fetch all results with pagination
+        all_rows = []
+        page_size = 1000
+        offset = 0
         
-        if filters.get('pa_mnd_required'):
-            # Normalize to match DB values
-            pa_mnd = filters['pa_mnd_required'].lower() if isinstance(filters['pa_mnd_required'], str) else filters['pa_mnd_required']
-            if pa_mnd in ['yes', 'no', 'unknown']:
-                query = query.eq("pa_mnd_required", pa_mnd)
-        
-        if filters.get('category'):
-            # Category is now a single value per row - use equality
-            category_filter = filters['category']
-            query = query.ilike("category", f"%{category_filter}%")
-        
-        if filters.get('hcpcs'):
-            query = query.eq("hcpcs", filters['hcpcs'])
-        
-        if filters.get('manufacturer'):
-            manufacturer = filters['manufacturer']
-            query = query.ilike("manufacturer", f"%{manufacturer}%")
-        
-        response = query.order("drug_name").execute()
+        while True:
+            response = build_query(offset, page_size).execute()
+            
+            if not response.data:
+                break
+            
+            all_rows.extend(response.data)
+            
+            if len(response.data) < page_size:
+                break
+            
+            offset += page_size
         
         # Aggregate results by drug_name
         drugs_dict = {}
-        for row in response.data:
+        for row in all_rows:
             name = row['drug_name']
             if name not in drugs_dict:
                 drugs_dict[name] = {
@@ -340,30 +360,61 @@ def get_non_preferred_drugs_with_preferred_alternatives() -> List[Dict[str, Any]
     """
     supabase = get_supabase_client()
     try:
-        # Get all non-preferred drug-category pairs
-        non_preferred_response = (supabase.table("drugs")
-                                 .select("*")
-                                 .eq("drug_status", "non_preferred")
-                                 .not_.is_("category", "null")
-                                 .execute())
+        # Get all non-preferred drug-category pairs with pagination
+        all_non_preferred = []
+        page_size = 1000
+        offset = 0
         
-        # Get all preferred drug-category pairs
-        preferred_response = (supabase.table("drugs")
-                             .select("category")
-                             .eq("drug_status", "preferred")
-                             .not_.is_("category", "null")
-                             .execute())
+        while True:
+            response = (supabase.table("drugs")
+                       .select("*")
+                       .eq("drug_status", "non_preferred")
+                       .not_.is_("category", "null")
+                       .range(offset, offset + page_size - 1)
+                       .execute())
+            
+            if not response.data:
+                break
+            
+            all_non_preferred.extend(response.data)
+            
+            if len(response.data) < page_size:
+                break
+            
+            offset += page_size
+        
+        # Get all preferred drug-category pairs with pagination
+        all_preferred = []
+        offset = 0
+        
+        while True:
+            response = (supabase.table("drugs")
+                       .select("category")
+                       .eq("drug_status", "preferred")
+                       .not_.is_("category", "null")
+                       .range(offset, offset + page_size - 1)
+                       .execute())
+            
+            if not response.data:
+                break
+            
+            all_preferred.extend(response.data)
+            
+            if len(response.data) < page_size:
+                break
+            
+            offset += page_size
         
         # Build a set of categories that have preferred drugs
         categories_with_preferred = set()
-        for row in preferred_response.data:
+        for row in all_preferred:
             if row.get('category'):
                 categories_with_preferred.add(row['category'])
         
         # Filter non-preferred drugs that share a category with a preferred drug
         # Then aggregate by drug_name
         drugs_dict = {}
-        for row in non_preferred_response.data:
+        for row in all_non_preferred:
             category = row.get('category')
             if category in categories_with_preferred:
                 name = row['drug_name']
