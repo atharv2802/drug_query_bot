@@ -1,10 +1,10 @@
-# 💊 Drug Query Bot
+# Drug Query Bot
 
 > **Intelligent Healthcare Formulary Assistant with AI-Powered Natural Language Processing**
 
 A production-ready application that transforms complex drug formulary queries into accurate, actionable information using advanced AI, optimized database queries, and clean data architecture.
 
-**🚀 Live Demo:** [https://drugquerybot.streamlit.app/](https://drugquerybot.streamlit.app/)
+**Live Demo:** [https://drugquerybot.streamlit.app/](https://drugquerybot.streamlit.app/)
 
 ---
 
@@ -34,12 +34,13 @@ The Drug Query Bot intelligently processes natural language queries about prescr
 - **Detailed Information**: HCPCS codes, manufacturers, special notes
 
 **Key Differentiators:**
-- 🧠 **Hybrid Intelligence**: 85% rule-based (instant) + 15% LLM fallback for edge cases
-- ⚡ **Lightning Fast**: Sub-2-second response times with intelligent caching
-- 🔍 **Fuzzy Matching**: 90%+ accuracy with typos and name variations
-- 🌐 **REST API**: Full programmatic access with comprehensive documentation
-- 📊 **Complete Coverage**: 2000+ drugs across 8 therapeutic categories
-- 🎯 **Per-Category Status**: Drugs can have different statuses in different categories
+- **Hybrid Intelligence**: 85% rule-based (instant) + 15% LLM fallback for edge cases
+- **Lightning Fast**: Sub-2-second response times with intelligent caching
+- **Fuzzy Matching**: 90%+ accuracy with typos and name variations
+- **REST API**: Full programmatic access with comprehensive documentation
+- **Complete Coverage**: 2000+ drugs across 8 therapeutic categories
+- **Per-Category Status**: Drugs can have different statuses in different categories
+- **Pagination Support**: Handles large result sets (>1000 rows) without truncation
 
 ---
 
@@ -83,18 +84,18 @@ The Drug Query Bot intelligently processes natural language queries about prescr
 
 5. **LLM-Generated Response** (OpenRouter):
 
-   ### 💊 Avastin
+   ### Avastin
 
-   **Overall Status:** ✅ Preferred
+   **Overall Status:** preferred
 
    **Status by Category:**
-   - **Ophthalmic Injections:** ✅ Preferred
-   - **Oncology/Bevacizumab:** ⚠️ Non-Preferred
+   - **Ophthalmic Injections:** preferred
+   - **Oncology/Bevacizumab:** non-preferred
 
    **Details:**
    - **HCPCS Code:** J9035
    - **Manufacturer:** Genentech
-   - **PA/MND Required:** ✓ No prior authorization needed
+   - **PA/MND Required:** no
    - **Note:** Status varies by therapeutic category
 
 **Response Time:** 1.2 seconds
@@ -135,8 +136,8 @@ The Drug Query Bot intelligently processes natural language queries about prescr
 
 - **Streamlit Web App**: Natural language query interface with interactive widgets
 - **FastAPI REST API**: Programmatic access with OpenAPI documentation
-- **Markdown Formatting**: Emoji indicators, structured sections
-- **Debug Mode**: Developer view of intent parsing
+- **Markdown Formatting**: Clean plain text output with structured sections
+- **Debug Mode**: Developer view of intent parsing and database queries
 
 ---
 
@@ -174,10 +175,10 @@ drugs_dict[(drug_name, category)] = {...}
 ```
 
 **Quality Metrics:**
-- ✅ **100% Parse Success Rate**: No failed extractions
-- ✅ **Zero Data Loss**: All 2000+ records preserved
-- ✅ **Duplicate Handling**: Composite key prevents overwrites
-- ✅ **Format Consistency**: Normalized names, trimmed whitespace
+- **100% Parse Success Rate**: No failed extractions
+- **Zero Data Loss**: All 2000+ records preserved
+- **Duplicate Handling**: Composite key prevents overwrites
+- **Format Consistency**: Normalized names, trimmed whitespace
 
 ---
 
@@ -225,11 +226,12 @@ CREATE INDEX idx_drugs_pa_mnd ON drugs(pa_mnd_required);
 - **Aggregation**: Application layer combines rows for unified drug view
 
 **Data Quality Standards:**
-- ✅ **Consistent Naming**: All drug names normalized (lowercase, trimmed)
-- ✅ **Standardized Values**: Controlled vocabularies for status and requirements
-- ✅ **Composite Key Integrity**: No duplicate (drug, category) combinations
-- ✅ **Clean Formatting**: No HTML artifacts, special characters sanitized
-- ✅ **Per-Category Accuracy**: Different statuses correctly represented
+- **Consistent Naming**: All drug names normalized (lowercase, trimmed)
+- **Standardized Values**: Controlled vocabularies for status and requirements
+- **Composite Key Integrity**: No duplicate (drug, category) combinations
+- **Clean Formatting**: No HTML artifacts, special characters sanitized
+- **Per-Category Accuracy**: Different statuses correctly represented
+- **Complete Data Retrieval**: Pagination ensures no results are truncated (>1000 rows)
 
 ---
 
@@ -264,10 +266,11 @@ Filter Extraction:
 - "Did you mean?" suggestions for low-confidence matches
 
 **Correctness Validation:**
-- ✅ **100% test coverage** on intent parsing (`tests/test_intent.py`)
-- ✅ **Edge case handling**: Partial names, misspellings, multi-word drugs
-- ✅ **Multi-filter support**: Combines status + category + PA requirements
-- ✅ **Regression testing**: Validates against 50+ known queries
+- **100% test coverage** on intent parsing (`tests/test_intent.py`)
+- **Edge case handling**: Partial names, misspellings, multi-word drugs
+- **Multi-filter support**: Combines status + category + PA requirements
+- **Regression testing**: Validates against 50+ known queries
+- **Pagination testing**: Verified on all database query functions
 
 ---
 
@@ -304,18 +307,21 @@ Results: {formatted_results}
 
 Guidelines:
 - Show per-category status when applicable
-- Use ✅ for preferred, ⚠️ for non-preferred
-- Indicate PA/MND requirements clearly
-- Format as structured markdown
+- Use plain text: "preferred" or "non-preferred"
+- Indicate PA/MND requirements clearly ("yes" or "no")
+- Group alternatives by category when drug appears in multiple categories
+- Format as structured markdown with clear sections
+- Display ALL results without truncation
 """
 ```
 
 **Quality Measures:**
-- ✅ **Prompt Engineering**: Tested across 100+ query variations
-- ✅ **Output Validation**: JSON schema enforcement for intent
-- ✅ **Error Handling**: Graceful fallback to rule-based when LLM fails
-- ✅ **Cost Optimization**: 85% queries skip LLM intent extraction
-- ✅ **Response Quality**: Medical-grade accuracy with proper terminology
+- **Prompt Engineering**: Tested across 100+ query variations
+- **Output Validation**: JSON schema enforcement for intent
+- **Error Handling**: Graceful fallback to rule-based when LLM fails
+- **Cost Optimization**: 85% queries skip LLM intent extraction
+- **Response Quality**: Medical-grade accuracy with proper terminology
+- **Plain Text Output**: No emojis or special characters in responses
 
 ---
 
@@ -346,13 +352,14 @@ drug_query_bot/
 ```
 
 **Quality Standards:**
-- ✅ **Type Hints**: 95%+ of functions have type annotations
-- ✅ **Docstrings**: Every public function documented with purpose, args, returns
-- ✅ **Error Handling**: Try-except blocks with specific exception types
-- ✅ **Logging**: Comprehensive error messages for debugging
-- ✅ **Test Coverage**: 85%+ code coverage with pytest
-- ✅ **Linting**: Follows PEP 8 style guidelines
-- ✅ **Comments**: Complex logic explained inline
+- **Type Hints**: 95%+ of functions have type annotations
+- **Docstrings**: Every public function documented with purpose, args, returns
+- **Error Handling**: Try-except blocks with specific exception types
+- **Logging**: Comprehensive error messages for debugging
+- **Test Coverage**: 85%+ code coverage with pytest
+- **Linting**: Follows PEP 8 style guidelines
+- **Comments**: Complex logic explained inline
+- **Pagination**: Implemented in all database queries returning large result sets
 
 ---
 
@@ -401,13 +408,13 @@ drug_query_bot/
 
 ### Data Flow
 
-1. **User Query** → "Is Avastin preferred?"
-2. **Intent Detection** → Rule-based parser identifies `drug_status` query
+1. **User Query** → "What are the alternatives to Avastin?"
+2. **Intent Detection** → Rule-based parser identifies `alternatives` query
 3. **Fuzzy Matching** → "Avastin" matched to "avastin" in database
-4. **Database Query** → Fetch all rows for drug_name='avastin'
-5. **Data Aggregation** → Combine rows into single object with categories array
-6. **LLM Formatting** → Generate natural language response
-7. **Response Delivery** → Display markdown with emojis and structure
+4. **Database Query** → Fetch all alternatives in same categories as avastin
+5. **Data Aggregation** → Combine rows, group by category
+6. **LLM Formatting** → Generate natural language response with category grouping
+7. **Response Delivery** → Display plain text markdown with structured sections
 
 ---
 
@@ -502,15 +509,33 @@ def fetch_all_drug_names():
 
 ### 5. Pagination for Large Results
 ```python
-# Fetch beyond Supabase's 1000 row default limit
+# Implemented in: fetch_all_drug_names, fetch_alternatives, 
+# get_all_categories, filter_drugs, get_non_preferred_drugs_with_preferred_alternatives
 page_size = 1000
 offset = 0
+all_rows = []
+
 while True:
-    response = db.table("drugs").select("*").range(offset, offset + 999).execute()
-    if not response.data or len(response.data) < page_size:
+    response = db.table("drugs").select("*").range(offset, offset + page_size - 1).execute()
+    
+    if not response.data:
         break
+    
+    all_rows.extend(response.data)
+    
+    if len(response.data) < page_size:
+        break
+    
     offset += page_size
 ```
+
+**Coverage:**
+- `fetch_all_drug_names()`: Pagination enabled
+- `fetch_alternatives()`: Pagination enabled
+- `get_all_categories()`: Pagination enabled
+- `filter_drugs()`: Pagination enabled
+- `get_non_preferred_drugs_with_preferred_alternatives()`: Pagination enabled
+- Prevents data truncation for queries returning >1000 results
 
 ### 6. Connection Pooling
 - **Supabase client:** Single instance, connection reuse
@@ -605,7 +630,19 @@ while True:
     offset += 1000
 ```
 
-### 9. Case Sensitivity
+### 9. Plain Text Output Format
+**Edge Case:** Terminal encoding issues with emojis (UnicodeEncodeError)
+
+**Solution:**
+- All LLM prompts updated to generate plain text only
+- No emoji characters in system prompts or outputs
+- Status indicators: "preferred" / "non-preferred" (not checkmarks/warnings)
+- PA/MND indicators: "yes" / "no" (not symbols)
+- Clean markdown formatting without special characters
+
+**Example:** Instead of "Status: preferred", output is "Status: preferred"
+
+### 10. Case Sensitivity
 **Edge Case:** "HUMIRA" vs "humira" vs "Humira"
 
 **Solution:**
@@ -613,7 +650,7 @@ while True:
 - Query normalization: `.lower().strip()`
 - Database: Case-insensitive `ILIKE` operator
 
-### 10. Multi-Word Drug Names
+### 11. Multi-Word Drug Names
 **Edge Case:** "Remicade IV" vs "Remicade" vs "IV Remicade"
 
 **Solution:**
