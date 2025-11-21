@@ -191,19 +191,10 @@ def generate_answer_with_llm(
     # Format results as readable text
     if not results:
         results_text = "No results found in the database."
-    elif len(results) > 10:
-        # For large result sets, provide summary statistics
-        results_text = f"Database Results: {len(results)} drugs found.\n\n"
-        results_text += "Summary:\n"
-        categories = set(r.get('category') for r in results if r.get('category'))
-        manufacturers = set(r.get('manufacturer') for r in results if r.get('manufacturer'))
-        results_text += f"  Categories: {', '.join(sorted(categories)) if categories else 'N/A'}\n"
-        results_text += f"  Manufacturers: {', '.join(sorted(list(manufacturers)[:5])) if manufacturers else 'N/A'}\n"
-        results_text += f"  (Showing first 5 examples below)\n\n"
-        for i, row in enumerate(results[:5], 1):
-            results_text += f"Drug {i}: {row.get('drug_name', 'N/A')} ({row.get('drug_status', 'N/A')})\n"
     else:
-        results_text = "Database Results:\n\n"
+        # Always show all results with full category information
+        results_text = f"Database Results: {len(results)} drugs found.\n\n"
+        
         for i, row in enumerate(results, 1):
             results_text += f"Drug {i}:\n"
             results_text += f"  Name: {row.get('drug_name', 'N/A')}\n"

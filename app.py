@@ -344,9 +344,9 @@ def main():
                 for idx, drug in enumerate(suggestions):
                     col_idx = idx % 2
                     with cols[col_idx]:
-                        status_emoji = "✅" if drug.get('drug_status') == 'preferred' else "⚠️"
+                        status_text = "preferred" if drug.get('drug_status') == 'preferred' else "non-preferred"
                         if st.button(
-                            f"{status_emoji} {drug['drug_name']} ({drug.get('category', 'N/A')})",
+                            f"{drug['drug_name']} ({drug.get('category', 'N/A')}, {status_text})",
                             key=f"autocomplete_{idx}",
                             use_container_width=True
                         ):

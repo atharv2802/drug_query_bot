@@ -172,7 +172,6 @@ def fetch_alternatives(drug_name: str, drug_status: Optional[str] = None) -> Lis
         # Fetch all drugs in the same categories with pagination
         all_rows = []
         page_size = 1000
-        offset = 0
         
         # Query each category separately and collect results
         for category in categories:
@@ -195,6 +194,7 @@ def fetch_alternatives(drug_name: str, drug_status: Optional[str] = None) -> Lis
                 
                 all_rows.extend(response.data)
                 
+                # Continue pagination if we got a full page
                 if len(response.data) < page_size:
                     break
                 
